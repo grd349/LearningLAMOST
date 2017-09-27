@@ -1,0 +1,31 @@
+A quick reference for git ...
+
+################################
+# First step - clone the repo to make a local copy ...
+
+git clone https://github.com/grd349/LearningLAMOST.git
+
+################################
+# If you are going to do some work ...
+
+git pull     # This brings you up to date
+
+Now do some work e.g., create a git cheat sheet.
+
+git status    # Tell you there is now an untracked file
+
+git add .     # Adds all untracked files - use with caution... don't add everything
+
+git status    # Tells you there is a new file
+
+git commit -m "Added a git cheat sheet"   # Commits the changes
+
+git push      # Pushes your local version into the repo.
+
+
+################################
+# This is all I have for now.
+
+# If you get a conflict ... think pretty hard before doing anything.
+#  It might be worth getting help for conflicts.
+
