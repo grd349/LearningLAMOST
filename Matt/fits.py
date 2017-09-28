@@ -17,6 +17,7 @@ class Spectrum:
 	disp = hdulist[0].header['COEFF1']
 
 	self.wavelength = 10**sp.arange(init, init+disp*len(self.flux), disp)[0:len(self.flux)]
+		#temporary fix, need to add permenant way to ensure lengths are same
 	
         hdulist.close()
 
