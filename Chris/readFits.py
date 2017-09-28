@@ -8,9 +8,17 @@ class Spectrum:
 	hdulist = fits.open(path)
 	self.flux = (hdulist[0].data)[0]
 	self.date = hdulist[0].header["DATE"]
-	self.t_ID = hdulist[0].header["T_INFO"]
-	self.SNR = hdulist[0].header["SN_U"]
-	self.wavelength = np.linspace(3690,9000,len(self.flux))
+	self.t_ID = hdulist[0].header["SPID"]
+	self.SN_U = hdulist[0].header["SN_U"]
+	self.SN_G = hdulist[0].header["SN_G"]
+	self.SN_R = hdulist[0].header["SN_R"]
+	self.SN_I = hdulist[0].header["SN_I"]
+	self.SN_Z = hdulist[0].header["SN_Z"]
+	
+	init = hdulist[0].header["COEFF0"]
+	disp = hdulist[0].header["COEFF1"]
+
+	self.wavelength = 10**(np.arange(init,init+disp*len(self.flux),disp))[0:len(self.flux)]
 	hdulist.close()
 
     def plotFlux(self):
