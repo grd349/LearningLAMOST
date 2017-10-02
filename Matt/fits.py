@@ -11,7 +11,11 @@ class Spectrum:
         self.flux = hdulist[0].data[0]
         self.date = hdulist[0].header['DATE']
         self.SPID = hdulist[0].header['SPID']
-        self.SNR = hdulist[0].header['SN_U']
+        self.SNR_U = hdulist[0].header['SN_U']
+        self.SNR_G = hdulist[0].header['SN_G']
+        self.SNR_R = hdulist[0].header['SN_R']
+        self.SNR_I = hdulist[0].header['SN_I']
+        self.SNR_Z = hdulist[0].header['SN_Z']
         self.CLASS = hdulist[0].header['CLASS']
         	
         init = hdulist[0].header['COEFF0']
