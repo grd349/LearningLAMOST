@@ -38,8 +38,8 @@ class Spectrum:
             ax1.plot(self.wavelength,self.flux)
             ax1.set_title(element)
             ax1.set_xlim(lines[element])
-            ax1.set_ylim(ymin=0)
             ax1.set_xticks(lines[element])
+            ax1.set_yscale('log')
             
         plt.show()
 
