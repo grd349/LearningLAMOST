@@ -16,13 +16,13 @@ class Spectrum:
         self.SN_I = hdulist[0].header["SN_I"]
         self.SN_Z = hdulist[0].header["SN_Z"]
         
+        self.totCounts = np.sum(self.flux)
+        
         init = hdulist[0].header["COEFF0"]
         disp = hdulist[0].header["COEFF1"]
         
         self.wavelength = 10**(np.arange(init,init+disp*(len(self.flux)-0.9),disp))
         hdulist.close()
-
-    def plotFlux(self, inset=None):
         
         h = 6.63e-34
         c = 3e8
@@ -30,9 +30,15 @@ class Spectrum:
         T = 7000
         E = 1e-4*(8*np.pi*h*c)/((self.wavelength*1e-10)**5*(np.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
         
+        self.fudge = self.totCounts/np.sum(E)
+        
+        self.bbFlux = self.fudge*E
+
+    def plotFlux(self, inset=None):
+        
         fig, ax1 = plt.subplots()
         ax1.plot(self.wavelength,self.flux)
-        ax1.plot(self.wavelength,E)
+        ax1.plot(self.wavelength,self.bbFlux)
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
         ax1.set_title("Class {}, ID {}".format(self.CLASS,self.t_ID))
