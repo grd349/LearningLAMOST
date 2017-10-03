@@ -23,8 +23,16 @@ class Spectrum:
         hdulist.close()
 
     def plotFlux(self, inset=None):
+        
+        h = 6.63e-34
+        c = 3e8
+        k = 1.38e-23
+        T = 7000
+        E = 1e-4*(8*np.pi*h*c)/((self.wavelength*1e-10)**5*(np.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
+        
         fig, ax1 = plt.subplots()
         ax1.plot(self.wavelength,self.flux)
+        ax1.plot(self.wavelength,E)
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
         ax1.set_title("Class {}, ID {}".format(self.CLASS,self.t_ID))
@@ -43,7 +51,7 @@ class Spectrum:
 
 spectra = []
 
-for fitsName in glob.glob('../Data/relearninglamost/*.fits'):
+for fitsName in glob.glob('../Data/DR1/*.fits'):
     spectra.append(Spectrum(fitsName))
 
 for spectrumNumber in spectra:
