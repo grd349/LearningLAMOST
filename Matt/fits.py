@@ -31,9 +31,9 @@ class Spectrum:
         T = 7000
         E = (8*sp.pi*h*c)/((self.wavelength*1e-10)**5*(sp.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
         
-        fudge = self.totCounts/sp.sum(E)
+        self.fudge = self.totCounts/sp.sum(E)
         
-        self.bbc = fudge*E
+        self.bbFlux = self.fudge*E
         	
         hdulist.close()
     
@@ -42,7 +42,7 @@ class Spectrum:
         
         fig, ax = plt.subplots()
         ax.plot(self.wavelength,self.flux)
-        ax.plot(self.wavelength,self.bbc)
+        ax.plot(self.wavelength,self.bbFlux)
         
         ax.set_xlabel('Wavelength \ Angstroms')
         ax.set_ylabel('Flux')
