@@ -31,12 +31,25 @@ class Spectrum:
         T = 7000
         E = (8*sp.pi*h*c)/((self.wavelength*1e-10)**5*(sp.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
         
-        self.fudge = self.totCounts/sp.sum(E)
+        fudge = self.totCounts/sp.sum(E)
         
-        self.bbFlux = self.fudge*E
+        self.bbFlux = fudge*E
         	
         hdulist.close()
-    
+        
+        self.lines = {'Iron':[3800, 3900]}
+        
+        self.letters = {'B':[3980, 4920], 'V':[5070, 5950], 'R':[5890, 7270]}
+        self.bands = {'B':0, 'V':0, 'R':0}
+        
+        for letter in self.letters:
+            lower = sp.searchsorted(self.wavelength, self.letters[letter][0], side = 'left')
+            upper = sp.searchsorted(self.wavelength, self.letters[letter][1], side = 'right')
+            self.bands[letter] = sp.sum(self.flux[lower:upper])
+        
+        self.colour = self.bands['B'] - self.bands['V']
+            
+        
     def plotFlux(self, element = None):
 
         
@@ -49,25 +62,34 @@ class Spectrum:
         ax.set_yscale('log')
         ax.set_title('{} - {}'.format(self.SPID, self.CLASS))
         
-        lines = {'Iron':[3800, 3900]}
-            #decide on a 'range' & add more elements
-            #add actual line positon and plot?
-        
-        if element in lines:
+        if element in self.lines:
             ax1 = fig.add_axes([0.6,0.55,0.25,0.25])
             ax1.plot(self.wavelength,self.flux)
             ax1.set_title(element)
-            ax1.set_xlim(lines[element])
-            ax1.set_xticks(lines[element])
+            ax1.set_xlim(self.lines[element])
+            ax1.set_xticks(self.lines[element])
             ax1.set_yscale('log')
             
         plt.show()
+        
 
 spectra = []
-stars = 0
 
 for fitsName in glob.glob('../Data/DR1/*.fits'):
     spectra.append(Spectrum(fitsName))
 
+colour = []
+counts = []
+
 for i in spectra:
-    i.plotFlux()
+    colour.append(i.colour)
+    counts.append(i.totCounts)
+
+fig, ax = plt.subplots()
+ax.scatter(colour,counts)
+
+ax.set_xlabel('B-V')
+ax.set_ylabel('total Counts')
+#ax.set_yscale('log')
+ax.set_title('Spectra Features')
+plt.show()
