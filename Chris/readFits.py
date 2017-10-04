@@ -31,11 +31,22 @@ class Spectrum:
         E = 1e-4*(8*np.pi*h*c)/((self.wavelength*1e-10)**5*(np.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
         
         self.fudge = self.totCounts/np.sum(E)
-        
         self.bbFlux = self.fudge*E
-
-    def plotFlux(self, inset=None):
         
+        self.letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270]}
+        self.bandCounts = {"B":0, "V":0, "R":0}
+        
+        self.lines = {'Iron':[3800, 3900]}
+        
+        for letter in self.letters:
+            lower = np.searchsorted(self.wavelength,self.letters[letter][0],side="left")
+            upper = np.searchsorted(self.wavelength,self.letters[letter][1],side="right")       
+            self.bandCounts[letter] = np.sum(self.flux[lower:upper])
+            
+        self.colour = self.bandCounts["B"]-self.bandCounts["V"]
+
+
+    def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots()
         ax1.plot(self.wavelength,self.flux)
         ax1.plot(self.wavelength,self.bbFlux)
@@ -44,24 +55,39 @@ class Spectrum:
         ax1.set_title("Class {}, ID {}".format(self.CLASS,self.t_ID))
         ax1.set_yscale('log')
 
-        features = {'Iron':[3800, 3900]}
-
-        if inset in features:
+        if inset in self.lines:
             ax2 = fig.add_axes([0.6,0.55,0.25,0.25])
             ax2.plot(self.wavelength,self.flux)
             ax2.set_title(inset)
-            ax2.set_xlim(features[inset])
+            ax2.set_xlim(self.lines[inset])
             ax2.set_yscale('log')	
             
         plt.show()
+        
 
 spectra = []
 
 for fitsName in glob.glob('../Data/DR1/*.fits'):
     spectra.append(Spectrum(fitsName))
 
-for spectrumNumber in spectra:
-    spectrumNumber.plotFlux('Iron')
+#for spectrumNumber in spectra:
+    #spectrumNumber.plotFlux('Iron')
+
+colour = []
+counts = []
+
+for spectrum in spectra:
+    colour.append(spectrum.colour)
+    counts.append(spectrum.totCounts)
+    
+fig, ax1 = plt.subplots()
+ax1.scatter(colour,counts)
+ax1.set_xlabel('B-V')
+ax1.set_ylabel('Total Counts')
+ax1.set_title("Scatter Plot of Total Counts against B-V Feature")
+ax1.set_yscale('log')
+plt.show()
+
 
 
 	
