@@ -27,8 +27,8 @@ class Spectrum:
         h = 6.63e-34
         c = 3e8
         k = 1.38e-23
-        T = 7000
-        E = 1e-4*(8*np.pi*h*c)/((self.wavelength*1e-10)**5*(np.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
+        self.T = 3000
+        E = 1e-4*(8*np.pi*h*c)/((self.wavelength*1e-10)**5*(np.exp(h*c/((self.wavelength*1e-10)*k*self.T))-1))
         
         self.fudge = self.totCounts/np.sum(E)
         self.bbFlux = self.fudge*E
@@ -43,7 +43,7 @@ class Spectrum:
             upper = np.searchsorted(self.wavelength,self.letters[letter][1],side="right")       
             self.bandCounts[letter] = np.sum(self.flux[lower:upper])
             
-        self.colour = self.bandCounts["B"]-self.bandCounts["V"]
+        self.colour = np.log(self.bandCounts["B"])-np.log(self.bandCounts["V"])
 
 
     def plotFlux(self, inset=None):    
@@ -52,7 +52,7 @@ class Spectrum:
         ax1.plot(self.wavelength,self.bbFlux)
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
-        ax1.set_title("Class {}, ID {}".format(self.CLASS,self.t_ID))
+        ax1.set_title("Class {}, ID {}, Temperature {}K".format(self.CLASS,self.t_ID,self.T))
         ax1.set_yscale('log')
 
         if inset in self.lines:
@@ -63,6 +63,7 @@ class Spectrum:
             ax2.set_yscale('log')	
             
         plt.show()
+        #plt.savefig("Spectrum3")
         
 
 spectra = []
@@ -71,7 +72,9 @@ for fitsName in glob.glob('../Data/DR1/*.fits'):
     spectra.append(Spectrum(fitsName))
 
 #for spectrumNumber in spectra:
-    #spectrumNumber.plotFlux('Iron')
+ #   spectrumNumber.plotFlux()
+
+spectra[27].plotFlux()
 
 colour = []
 counts = []
@@ -82,14 +85,12 @@ for spectrum in spectra:
     
 fig, ax1 = plt.subplots()
 ax1.scatter(colour,counts)
-ax1.set_xlabel('B-V')
+ax1.set_xlabel('B-V Feature')
 ax1.set_ylabel('Total Counts')
 ax1.set_title("Scatter Plot of Total Counts against B-V Feature")
-ax1.set_yscale('log')
+#ax1.set_yscale('log')
 plt.show()
-
-
-
+#plt.savefig("FeaturePlot2")
 	
 
 
