@@ -1,0 +1,40 @@
+\section{Stellar classification}
+
+Stellar classification is the use of a stars EM spectrum to classify it. These spectrum will contain absorbtion lines, which correspond to ions present in the star. The greater the strength of these lines, the greater the abundance of the corresponding ion. The relative abundance of the different elements in the star depends on the temperature of the star itself.
+
+A spectral class is a short code associated with a star that describes its temperature and density, aswell as ionisation state. The most commonly used classification method is the Morgan-Keenan (Mk) system, which breaks the classification of stars into 3 stages.
+
+The first of these stages involves assigning a type to the star based on its temperatue, these types are described from hottest to coldest using the letters OBAFGKM, such that the hottest stars are assigned the O type, and the coldest the M type.
+
+\textbf{include table of temperatures?}
+
+Each of these types is then divided into 10 subtypes further dividing the types by temperature, labelled from 0 to 9 with decreasing temperature. Thus, starting from B1 and increasing the temperature gives the types B0, O9 and finally O8.
+
+The final stage is the addition of a luminosity class, based on the width of certain absorbtion lines in the spectrum of the star. As line widths depend on the density of the stars atmosphere, these allow for giant stars to be differentiated from dwarfs. These classes are:
+
+\begin{itemize}
+	\item 0 or Ia+, hypergiants
+	\item I, supergiants
+	\item II, bright giants
+	\item III, regular giants
+	\item IV, sub-giants
+	\item V, main-sequence stars
+	\item sd, sub-dwarfs
+	\item D, white dwarfs
+\end{itemize}
+
+Combining these allows for a star to be accurately and compactly describes, for example the sun's classification in this system is G2V.
+
+Peculiar features of a spectra can also be shown by following the stars class with a code, corresponding to the irregularity. Some examples include : to represent an uncertain spectral value, e for the presence of emmision lines and an element symbol for abnormally strong spectral lines of the corresponding element.
+
+\Subsection{Spectral Types}
+
+\subsubsection{Class O}
+
+Class O stars are the hottest and brightest, and so also the most massive of stars. They emmit light primarily in the ultraviolet range.
+
+The type of the star is defined by the ratio of the N IV ($\lambda = 4058$) to the N III ($\lambda = 4634-40-42$) emissions lines, with type O7 corresponding to when they have equal intensity, and type O3 when the N \textbf{dunno which} line dissapears completely
+
+\textbf{may not be write, deffo how use to be done with H, now switched to N, not sure if types changed}
+
+Their surroundings are often complicated, making measuring their spectra difficult.

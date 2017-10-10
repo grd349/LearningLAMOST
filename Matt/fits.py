@@ -8,6 +8,7 @@ import glob
 class Spectrum:
     def __init__(self, path):
         hdulist = fits.open(path)
+        
         self.flux = hdulist[0].data[0]
         self.date = hdulist[0].header['DATE']
         self.SPID = hdulist[0].header['SPID']
@@ -47,7 +48,7 @@ class Spectrum:
             upper = sp.searchsorted(self.wavelength, self.letters[letter][1], side = 'right')
             self.bands[letter] = sp.sum(self.flux[lower:upper])
         
-        self.colour = self.bands['B'] - self.bands['V']
+        self.colour = sp.log(self.bands['B']) - sp.log(self.bands['V'])
             
         
     def plotFlux(self, element = None):
@@ -88,8 +89,8 @@ for i in spectra:
 fig, ax = plt.subplots()
 ax.scatter(colour,counts)
 
-ax.set_xlabel('B-V')
+ax.set_xlabel('log (B/V)')
 ax.set_ylabel('total Counts')
 #ax.set_yscale('log')
 ax.set_title('Spectra Features')
-plt.show()
+plt.savefig('featurePlot')
