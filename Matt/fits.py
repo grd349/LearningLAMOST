@@ -73,7 +73,7 @@ class Spectrum:
             
         plt.show()
         
-
+"""
 spectra = []
 
 for fitsName in glob.glob('../Data/DR1/*.fits'):
@@ -94,3 +94,4 @@ ax.set_ylabel('total Counts')
 #ax.set_yscale('log')
 ax.set_title('Spectra Features')
 plt.savefig('featurePlot')
+"""
