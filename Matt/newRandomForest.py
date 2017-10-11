@@ -6,17 +6,14 @@ import glob
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import cross_validation
 
-from fits import Spectrum
+from fits import Spectra
 
-spectra = []
-
-for fitsName in glob.glob('../Data/DR1/*.fits'):
-    spectra.append(Spectrum(fitsName))
+spectra = Spectra('../Data/DR1/*.fits')
     
-colour = sp.column_stack([sp.array([i.colour for i in spectra])]) #input data needs each sample in a separate row, not column
-
-temperature = sp.array([int(i.flux[-1]) for i in spectra]) #need to find actual temperatures
-
+colour = sp.reshape(spectra.colour, (-1, 1)) #input data needs each sample in a separate row, not column
+                   
+temperature = sp.array([int(i.flux[100]) for i in spectra.spectra]) #need to find actual temperatures
+                      
 #need samples and their 'correct values' in scipy arrays, so can index them using kfolds
     
 clf = RandomForestClassifier()
@@ -31,8 +28,6 @@ for train_index, test_index in kf:
     test_pred = clf.predict(X_test)
     error += sp.sum(abs(test_pred-y_test)/len(colour))#need to make more mathematical test of accuracy, placeholder
     
-print kf
-
 clf.fit(colour, temperature)
 
 plt.scatter(colour, clf.predict(colour) - temperature)

@@ -73,6 +73,33 @@ class Spectrum:
             
         plt.show()
         
+class Spectra:
+    def __init__(self, path):
+        self.spectra = sp.array([])
+        self.flux = []
+        self.colour = sp.array([])
+        self.wavelength = []
+        self.SPID = sp.array([])
+        self.CLASS = sp.array([])
+        
+        for fitsName in glob.glob(path):
+            self.spectra = sp.append(self.spectra, Spectrum(fitsName))
+            self.flux.append(self.spectra[-1].flux)
+            self.colour = sp.append(self.colour, self.spectra[-1].colour)
+            self.wavelength.append(self.spectra[-1].wavelength)
+            self.SPID = sp.append(self.SPID, self.spectra[-1].SPID)
+            self.CLASS = sp.append(self.CLASS, self.spectra[-1].CLASS)
+            
+        self.flux = sp.array(self.flux)
+        self.wavelength = sp.array(self.wavelength)
+    
+    def plotFlux(self, index, element = None):
+        self.spectra[index].plotFlux(element)
+
+#spectra = Spectra('../Data/DR1/*.fits')
+
+#print spectra.colour
+
 """
 spectra = []
 
