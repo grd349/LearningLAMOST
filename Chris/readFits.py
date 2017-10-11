@@ -43,7 +43,7 @@ class Spectrum:
             upper = np.searchsorted(self.wavelength,self.letters[letter][1],side="right")       
             self.bandCounts[letter] = np.sum(self.flux[lower:upper])
             
-        self.colour = np.log(self.bandCounts["B"])-np.log(self.bandCounts["V"])
+        self.BminusV = np.log10(self.bandCounts["B"])-np.log10(self.bandCounts["V"])
 
 
     def plotFlux(self, inset=None):    
@@ -66,25 +66,35 @@ class Spectrum:
         #plt.savefig("Spectrum3")
         
 
-spectra = []
+class Spectra:
+    def __init__(self,path):
+        self.specList = np.array([])
+        self.colourList = np.array([])
+        self.totCountsList = np.array([])
+        self.fluxList = []
+        self.wavelengthList = []
+        
+        for fitsName in glob.glob(path):
+            self.specList = np.append(self.specList,Spectrum(fitsName))
+            self.colourList = np.append(self.colourList,self.specList[-1].BminusV)
+            self.totCountsList = np.append(self.totCountsList,self.specList[-1].totCounts)
+            self.fluxList.append(self.specList[-1].flux)
+            self.wavelengthList.append(self.specList[-1].wavelength)
+            
+        self.fluxList = np.array(self.fluxList)
+        self.wavelengthList = np.array(self.wavelengthList)
+        
+    def plotFlux(self,specNumber):
+        self.specList[specNumber].plotFlux()
+            
+spec = Spectra('../Data/DR1/*.fits')
 
-for fitsName in glob.glob('../Data/DR1/*.fits'):
-    spectra.append(Spectrum(fitsName))
+#plt.plot(spec.wavelengthList[0],spec.fluxList[0])
 
-#for spectrumNumber in spectra:
- #   spectrumNumber.plotFlux()
-
-spectra[27].plotFlux()
-
-colour = []
-counts = []
-
-for spectrum in spectra:
-    colour.append(spectrum.colour)
-    counts.append(spectrum.totCounts)
+spec.plotFlux(0)
     
 fig, ax1 = plt.subplots()
-ax1.scatter(colour,counts)
+ax1.scatter(spec.colourList,spec.totCountsList)
 ax1.set_xlabel('B-V Feature')
 ax1.set_ylabel('Total Counts')
 ax1.set_title("Scatter Plot of Total Counts against B-V Feature")
