@@ -19,13 +19,15 @@ class Spectrum:
         self.SNR_Z = hdulist[0].header['SN_Z']
         self.CLASS = hdulist[0].header['CLASS']
         
+        self.desig = hdulist[0].header['DESIG'][7:]
+        
         self.totCounts = sp.sum(self.flux)
         	
         init = hdulist[0].header['COEFF0']
         disp = hdulist[0].header['COEFF1']
         
         self.wavelength = 10**sp.arange(init, init+disp*(len(self.flux)-0.9), disp)
-        
+        '../Data/DR1/*.fits'
         h = 6.63e-34
         c = 3e8
         k = 1.38e-23
@@ -95,6 +97,7 @@ class Spectra:
     
     def plotFlux(self, index, element = None):
         self.spectra[index].plotFlux(element)
+
 
 #spectra = Spectra('../Data/DR1/*.fits')
 

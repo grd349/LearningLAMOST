@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn
 
 if __name__ == "__main__":
-    sfile = 'Data/dr3_stellar.csv'
+    sfile = '/data2/dr3_stellar.csv'
 
     df = pd.read_csv(sfile, sep='|')
     print(df.columns)
