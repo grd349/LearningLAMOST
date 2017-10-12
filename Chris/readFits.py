@@ -15,7 +15,8 @@ class Spectrum:
         self.SN_R = hdulist[0].header["SN_R"]
         self.SN_I = hdulist[0].header["SN_I"]
         self.SN_Z = hdulist[0].header["SN_Z"]
-        
+        self.DESIG = hdulist[0].header["DESIG"][7:]
+
         self.totCounts = np.sum(self.flux)
         
         init = hdulist[0].header["COEFF0"]
@@ -45,7 +46,6 @@ class Spectrum:
             
         self.BminusV = np.log10(self.bandCounts["B"])-np.log10(self.bandCounts["V"])
 
-
     def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots()
         ax1.plot(self.wavelength,self.flux)
@@ -71,6 +71,7 @@ class Spectra:
         self.specList = np.array([])
         self.colourList = np.array([])
         self.totCountsList = np.array([])
+        self.desigList = np.array([])
         self.fluxList = []
         self.wavelengthList = []
         
@@ -78,6 +79,7 @@ class Spectra:
             self.specList = np.append(self.specList,Spectrum(fitsName))
             self.colourList = np.append(self.colourList,self.specList[-1].BminusV)
             self.totCountsList = np.append(self.totCountsList,self.specList[-1].totCounts)
+            self.desigList = np.append(self.desigList,self.specList[-1].DESIG)
             self.fluxList.append(self.specList[-1].flux)
             self.wavelengthList.append(self.specList[-1].wavelength)
             
@@ -86,9 +88,10 @@ class Spectra:
         
     def plotFlux(self,specNumber):
         self.specList[specNumber].plotFlux()
-            
+"""            
 spec = Spectra('../Data/DR1/*.fits')
 
+print(spec.desigList)
 #plt.plot(spec.wavelengthList[0],spec.fluxList[0])
 
 spec.plotFlux(0)
@@ -101,7 +104,7 @@ ax1.set_title("Scatter Plot of Total Counts against B-V Feature")
 #ax1.set_yscale('log')
 plt.show()
 #plt.savefig("FeaturePlot2")
-	
+"""	
 
 
 
