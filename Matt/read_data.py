@@ -26,6 +26,10 @@ for fitsName in glob.glob('../Data/DR1/*.fits'):
 df = catalog.merge(dr1, on='designation', how='inner')
 
 """
+currently getting more combined spectra than put in - need to find unique identifier
+"""
+
+"""
 if __name__ == "__main__":
     sfile = '/data2/mrs493/dr1_stellar.csv'
 
