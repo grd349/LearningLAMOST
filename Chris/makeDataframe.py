@@ -11,6 +11,8 @@ if __name__ == "__main__":
     spec = Spectra('../Data/DR1/*.fits')
     
     df = pd.read_csv(sfile, sep='|')
+    df.drop_duplicates(subset='designation', inplace=True)
+
     #print(df.columns)
 
     #print(df.loc[0:10].obsid)
@@ -24,19 +26,21 @@ if __name__ == "__main__":
     for i in ids:
         df_spectra.loc[len(df_spectra)] = [i[0], i[1]]
     """
-    df_spectra = pd.DataFrame(columns=['designation'])
-    ids = spec.desigList
+    print(spec.colourList)
+    df_spectra = pd.DataFrame(columns=['designation', 'feature'])
+    ids = np.column_stack((spec.desigList, spec.colourList))
     for i in ids:
-        df_spectra.loc[len(df_spectra)] = i
-        
-    print(df_spectra)
+        df_spectra.loc[len(df_spectra)] = [i[0], i[1]]
 
     df = df.merge(df_spectra, on='designation', how='inner')
-
-    print(df)
-    """
+    
+    fig, ax = plt.subplots()
+    ax.scatter([df.feature], df.teff)
+    plt.show()
+    
     df.to_csv('my_data.csv')
     
+    """
     fig, ax = plt.subplots()
     ax.hist(df.teff)
     plt.show()
@@ -44,3 +48,4 @@ if __name__ == "__main__":
     ax.hist(df['feh'])
     plt.show()
     """
+    
