@@ -49,12 +49,13 @@ df = catalog.merge(dr1, on='designation', how='inner')
 change above to a function, or write to a csv to be used in future code
 """
 
-
+"""
 fig, ax = plt.subplots()
 ax.scatter(df.colour, df.teff)
 ax.set_title('Star colour vs. temperature')
 ax.set_xlabel('Star colour / log(B/V)')
 ax.set_ylabel('Temperature / K')
+"""
 
 colour = sp.reshape(df.colour, (-1, 1))
 temperature = []
@@ -68,25 +69,23 @@ temperature= sp.array(temperature)
 clf = RandomForestClassifier()
 kf = cross_validation.KFold(n=len(colour), n_folds=5, shuffle=True)
 
-"""
+accuracy = []
 
-errors = []
-var = []
+for j in range(1,21):
 
-for train_index, test_index in kf:
-    X_train, X_test = colour[train_index], colour[test_index]
-    y_train, y_test = temperature[train_index], temperature[test_index]
-    clf = clf.fit(X_test,y_test)
-    test_pred = clf.predict(X_test)
-    error = abs(test_pred - y_test)
-    #errors.append(sp.mean(error))
-    errors.append(error)
-    
-print sp.mean(error)
+	accuracy_sum = []
+	kf = cross_validation.KFold(n = len(colour), n_folds = 5, shuffle = True)
 
-#need to add cross validation
-"""
-
+	for train_index, test_index in kf:
+	
+		X_train, X_test = colour[train_index], colour[test_index]
+		y_train, y_test = temperature[train_index], temperature[test_index]
+		clf = clf.fit(X_train, y_train)
+		test_pred = clf.predict(X_test)
+		accuracy = sp.concatenate((abs(test_pred - y_test)/(y_test*1.0), accuracy))
+		
+mean_accuracy = sp.mean(accuracy)
+std_accuracy = sp.std(accuracy)
 
 clf.fit(colour, temperature)
 pred = clf.predict(colour)
@@ -99,11 +98,9 @@ ax.set_xlabel('Actual temperature \ K')
 ax.set_ylabel('Predicted temperature \ K')
 ax.set_title('Actual vs. Predicted temperature')
 
-fig, ax = plt.subplots()
-ax.hist(error)
-ax.set_title('Error of Prediction')
+ax.text(10000, 4000, '{} +/- {}'.format(mean_accuracy, std_accuracy), size = 15, ha = 'right')
 
-
+plt.show()
 
 """
 if __name__ == "__main__":
