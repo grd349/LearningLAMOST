@@ -37,7 +37,6 @@ ax.set_ylabel('Temperature \ K')
 ax.set_title('Colour vs. Temperature ')
 
 clf = RandomForestClassifier()
-kf = cross_validation.KFold(n=len(colour), n_folds=5, shuffle=True)
 
 """
 Need to add in cross validation method

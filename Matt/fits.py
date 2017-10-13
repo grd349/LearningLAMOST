@@ -27,7 +27,6 @@ class Spectrum:
         disp = hdulist[0].header['COEFF1']
         
         self.wavelength = 10**sp.arange(init, init+disp*(len(self.flux)-0.9), disp)
-        '../Data/DR1/*.fits'
         h = 6.63e-34
         c = 3e8
         k = 1.38e-23
