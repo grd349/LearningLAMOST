@@ -5,7 +5,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import glob
 from astropy.io import fits
-import seaborn #for plotting, to be used later
+import seaborn as sns
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import cross_validation
@@ -49,13 +49,16 @@ df = catalog.merge(dr1, on='designation', how='inner')
 change above to a function, or write to a csv to be used in future code
 """
 
-"""
+
 fig, ax = plt.subplots()
 ax.scatter(df.colour, df.teff)
 ax.set_title('Star colour vs. temperature')
 ax.set_xlabel('Star colour / log(B/V)')
 ax.set_ylabel('Temperature / K')
-"""
+
+plt.show()
+
+#plot colour vs. temp
 
 colour = sp.reshape(df.colour, (-1, 1))
 temperature = []
@@ -99,6 +102,13 @@ ax.set_ylabel('Predicted temperature \ K')
 ax.set_title('Actual vs. Predicted temperature')
 
 ax.text(10000, 4000, '{} +/- {}'.format(mean_accuracy, std_accuracy), size = 15, ha = 'right')
+
+plt.show()
+
+#plot actual vs. model temp
+
+
+sns.residplot(temperature, pred, lowess=True)
 
 plt.show()
 
