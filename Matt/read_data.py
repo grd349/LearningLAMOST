@@ -56,7 +56,7 @@ ax.set_title('Star colour vs. temperature')
 ax.set_xlabel('Star colour / log(B/V)')
 ax.set_ylabel('Temperature / K')
 
-plt.show()
+plt.savefig('cvt')
 
 #plot colour vs. temp
 
@@ -103,14 +103,24 @@ ax.set_title('Actual vs. Predicted temperature')
 
 ax.text(10000, 4000, '{} +/- {}'.format(mean_accuracy, std_accuracy), size = 15, ha = 'right')
 
-plt.show()
+plt.savefig('fit')
 
 #plot actual vs. model temp
 
 
 sns.residplot(temperature, pred, lowess=True)
 
-plt.show()
+plt.savefig('residue')
+
+for i in range(len(pred)):
+	if (abs(pred[i] - temperature[i])/(temperature[i]*1.0)) > 0.1:
+		plt.figure()
+		plt.plot(df.loc[i].wavelength, df.loc[i].flux, color = 'k')
+		plt.axvline(3980)
+		plt.axvline(4920)
+		plt.axvline(5070)
+		plt.axvline(5950)
+		plt.savefig('spectra' + str(i))
 
 """
 if __name__ == "__main__":
