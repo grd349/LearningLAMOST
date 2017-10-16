@@ -26,17 +26,20 @@ if __name__ == "__main__":
     for i in ids:
         df_spectra.loc[len(df_spectra)] = [i[0], i[1]]
     """
-    print(spec.colourList)
-    df_spectra = pd.DataFrame(columns=['designation', 'feature'])
-    ids = np.column_stack((spec.desigList, spec.colourList))
+    #print(spec.colourList)
+    df_spectra = pd.DataFrame(columns=['designation', 'feature', 'wavelength', 'flux'])
+    ids = np.column_stack((spec.desigList, spec.colourList, spec.wavelengthList, spec.fluxList))
     for i in ids:
-        df_spectra.loc[len(df_spectra)] = [i[0], i[1]]
+        df_spectra.loc[len(df_spectra)] = [i[0], i[1], i[2], i[3]]
 
     df = df.merge(df_spectra, on='designation', how='inner')
     
     fig, ax = plt.subplots()
     ax.scatter([df.feature], df.teff)
-    plt.show()
+    ax.set_xlabel('log(B/V) Feature')
+    ax.set_ylabel('Effective Temperature / K')
+    ax.set_title('Plot of Temperature of Stars Against Colour')
+    plt.savefig("Tempcolplot")
     
     df.to_csv('my_data.csv')
     

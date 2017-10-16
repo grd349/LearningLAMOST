@@ -61,8 +61,11 @@ error = 0
 for train_index, test_index in kf:   
     X_train, X_test = colour[train_index], colour[test_index]
     y_train, y_test = temps[train_index], temps[test_index]
+    
     clf = clf.fit(X_train,y_train)
     test_pred = clf.predict(X_test)
+    print X_train
+    print y_train
     
     error = test_pred - y_test
     fig, ax2 = plt.subplots()
