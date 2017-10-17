@@ -57,6 +57,7 @@ ax.set_title('Actual vs. Predicted temperature')
 fig, ax = plt.subplots()
 ax.hist(error)
 ax.set_title('Error of Prediction')
+plt.show()
 
 """
 spectra = Spectra('../Data/DR1/*.fits')

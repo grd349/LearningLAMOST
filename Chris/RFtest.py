@@ -10,6 +10,7 @@ import random
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import cross_validation
+import seaborn as sns
 
 def blackbody(T):
     h = 6.63e-34
@@ -26,9 +27,9 @@ def blackbody(T):
         upper = np.searchsorted(wavelength,letters[letter][1],side="right")       
         bandCounts[letter] = np.sum(E[lower:upper])
         
-    return np.log10(bandCounts["V"])-np.log10(bandCounts["B"])
+    return (-2.5 * np.log10(bandCounts["B"]))-(-2.5 * np.log10(bandCounts["V"]))
 
-temps = np.random.normal(6000,1000,200)
+temps = np.random.normal(6000,2000,800)
 for i in range(len(temps)):
     temps[i] = int(temps[i])
 
@@ -42,7 +43,6 @@ ax1.scatter(blackbodyList,temps)
 ax1.set_xlabel('V-B Feature')
 ax1.set_ylabel('Temperature / K')
 ax1.set_title('Plot of Temp vs. V-B Feature for Modelled Blackbody Spectra')
-plt.show()    
     
 
 #spectra = Spectra('../Data/DR1/*.fits')
@@ -64,8 +64,8 @@ for train_index, test_index in kf:
     
     clf = clf.fit(X_train,y_train)
     test_pred = clf.predict(X_test)
-    print X_train
-    print y_train
+    print(X_train)
+    print(y_train)
     
     error = test_pred - y_test
     fig, ax2 = plt.subplots()
@@ -73,13 +73,13 @@ for train_index, test_index in kf:
     ax2.set_xlabel('Actual Temperature / K')
     ax2.set_ylabel('Predicted Temperature / K')
     ax2.set_title('Plot of Predicted vs. Actual Temperature for Modelled Blackbodies')
-    plt.show()
     
     fig, ax3 = plt.subplots()
-    ax3.hist(error)
-    ax3.set_xlabel('Actual Temperature / K')
-    ax3.set_ylabel('Predicted Temperature / K')
-    ax3.set_title('Plot of Predicted vs. Actual Temperature for Modelled Blackbodies')
+    sns.kdeplot(error, ax=ax3, shade=True)
+    #ax3.hist(error)
+    #ax3.set_xlabel('Actual Temperature / K')
+    #ax3.set_ylabel('Predicted Temperature / K')
+    #ax3.set_title('Plot of Predicted vs. Actual Temperature for Modelled Blackbodies')
     plt.show()
     
 """
