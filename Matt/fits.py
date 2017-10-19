@@ -6,54 +6,68 @@ import matplotlib.pyplot as plt
 import glob
 
 class Spectrum:
+    #a class to read and store information from the .fits files of DR1 spectra
     def __init__(self, path):
+        #takes the file path of the .fits file as an argument
         hdulist = fits.open(path)
+            #open the .fits file to allow for data access
+        self.flux = hdulist[0].data[0]  #flux counts of the spectra
+        self.date = hdulist[0].header['DATE']   #date the observation was made
+        self.SPID = hdulist[0].header['SPID']   #spectral ID (all = 6 that we've seen)
+        self.SNR_U = hdulist[0].header['SN_U']  #signal to noise ration (SNR) in U band
+        self.SNR_G = hdulist[0].header['SN_G']  #SNR in G band
+        self.SNR_R = hdulist[0].header['SN_R']  #SNR in R band
+        self.SNR_I = hdulist[0].header['SN_I']  #SNR in I band
+        self.SNR_Z = hdulist[0].header['SN_Z']  #SNR in Z band
+        self.CLASS = hdulist[0].header['CLASS'] #object LAMOST classification
         
-        self.flux = hdulist[0].data[0]
-        self.date = hdulist[0].header['DATE']
-        self.SPID = hdulist[0].header['SPID']
-        self.SNR_U = hdulist[0].header['SN_U']
-        self.SNR_G = hdulist[0].header['SN_G']
-        self.SNR_R = hdulist[0].header['SN_R']
-        self.SNR_I = hdulist[0].header['SN_I']
-        self.SNR_Z = hdulist[0].header['SN_Z']
-        self.CLASS = hdulist[0].header['CLASS']
+        self.desig = hdulist[0].header['DESIG'][7:] #Designation of the object
         
-        self.desig = hdulist[0].header['DESIG'][7:]
-        
-        self.totCounts = sp.sum(self.flux)
+        self.totCounts = sp.sum(self.flux)  #Sum the total counts to give a feature
         	
         init = hdulist[0].header['COEFF0']
+            #coeff0 is the centre point of the first point in log10 space
         disp = hdulist[0].header['COEFF1']
+            #coeff1 is the seperation between points in log10 space
         
         self.wavelength = 10**sp.arange(init, init+disp*(len(self.flux)-0.9), disp)
+            #use coeff0 and coeff1 to calculate the wavelength of each pixel in angstroms
         h = 6.63e-34
         c = 3e8
         k = 1.38e-23
         T = 7000
         E = (8*sp.pi*h*c)/((self.wavelength*1e-10)**5*(sp.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
-        
+            #Calculate an ideal black body curve for a temperature T
+            """
+            impliment finding of T from machine learning algorithm
+            """
         fudge = self.totCounts/sp.sum(E)
-        
+            #normalise blackbody curve by scaling by the total counts ratio of the curve to the spectra        
         self.bbFlux = fudge*E
+            #the normalised blackbody curve
         	
         hdulist.close()
-        
+            #close the .fits file
         self.lines = {'Iron':[3800, 3900]}
-        
+            #elements, and the window in which their emmision lines are seen 
         self.letters = {'B':[3980, 4920], 'V':[5070, 5950], 'R':[5890, 7270]}
+            #colour bands and their corresponding wavelength windows
         self.bands = {'B':0, 'V':0, 'R':0}
+            #colour bands and the (to be calculated) total counts in that band 
         
         for letter in self.letters:
             lower = sp.searchsorted(self.wavelength, self.letters[letter][0], side = 'left')
+                #find the index of the lower boundary of the band
             upper = sp.searchsorted(self.wavelength, self.letters[letter][1], side = 'right')
-            self.bands[letter] = sp.sum(self.flux[lower:upper])
+                #find the index of the upper boundary of the band
+            self.bands[letter] = -2.5*sp.log10(sp.sum(self.flux[lower:upper]))
+                #total the counts between these index, and convert to a colour
         
-        self.colour = sp.log(self.bands['B']) - sp.log(self.bands['V'])
-            
+        self.colour = self.bands['B'] - self.bands['V']
+            #store the difference between the B and V bands as a feature
         
     def plotFlux(self, element = None):
-
+        #method to plot the spectra and scaled blackbody curve
         
         fig, ax = plt.subplots()
         ax.plot(self.wavelength,self.flux)
@@ -72,55 +86,4 @@ class Spectrum:
             ax1.set_xticks(self.lines[element])
             ax1.set_yscale('log')
             
-        plt.show()
-        
-class Spectra:
-    def __init__(self, path):
-        self.spectra = sp.array([])
-        self.flux = []
-        self.colour = sp.array([])
-        self.wavelength = []
-        self.SPID = sp.array([])
-        self.CLASS = sp.array([])
-        
-        for fitsName in glob.glob(path):
-            self.spectra = sp.append(self.spectra, Spectrum(fitsName))
-            self.flux.append(self.spectra[-1].flux)
-            self.colour = sp.append(self.colour, self.spectra[-1].colour)
-            self.wavelength.append(self.spectra[-1].wavelength)
-            self.SPID = sp.append(self.SPID, self.spectra[-1].SPID)
-            self.CLASS = sp.append(self.CLASS, self.spectra[-1].CLASS)
-            
-        self.flux = sp.array(self.flux)
-        self.wavelength = sp.array(self.wavelength)
-    
-    def plotFlux(self, index, element = None):
-        self.spectra[index].plotFlux(element)
-
-
-#spectra = Spectra('../Data/DR1/*.fits')
-
-#print spectra.colour
-
-"""
-spectra = []
-
-for fitsName in glob.glob('../Data/DR1/*.fits'):
-    spectra.append(Spectrum(fitsName))
-
-colour = []
-counts = []
-
-for i in spectra:
-    colour.append(i.colour)
-    counts.append(i.totCounts)
-
-fig, ax = plt.subplots()
-ax.scatter(colour,counts)
-
-ax.set_xlabel('log (B/V)')
-ax.set_ylabel('total Counts')
-#ax.set_yscale('log')
-ax.set_title('Spectra Features')
-plt.savefig('featurePlot')
-"""
+        plt.show(
