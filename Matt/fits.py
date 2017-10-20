@@ -38,9 +38,9 @@ class Spectrum:
         T = 7000
         E = (8*sp.pi*h*c)/((self.wavelength*1e-10)**5*(sp.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
             #Calculate an ideal black body curve for a temperature T
-            """
-            impliment finding of T from machine learning algorithm
-            """
+	"""
+	impliment finding of T from machine learning algorithm
+	"""
         fudge = self.totCounts/sp.sum(E)
             #normalise blackbody curve by scaling by the total counts ratio of the curve to the spectra        
         self.bbFlux = fudge*E
@@ -67,18 +67,20 @@ class Spectrum:
             #store the difference between the B and V bands as a feature
         
     def plotFlux(self, element = None):
-        #method to plot the spectra and scaled blackbody curve
+        #method to plot the spectra and scaled blackbody curve, and also zoom in on element lines
         
         fig, ax = plt.subplots()
         ax.plot(self.wavelength,self.flux)
         ax.plot(self.wavelength,self.bbFlux)
+		#plot the flux and blackbody curve against wavelength
         
         ax.set_xlabel('Wavelength \ Angstroms')
         ax.set_ylabel('Flux')
         ax.set_yscale('log')
         ax.set_title('{} - {}'.format(self.SPID, self.CLASS))
-        
+
         if element in self.lines:
+		#plot inset plot for selected element
             ax1 = fig.add_axes([0.6,0.55,0.25,0.25])
             ax1.plot(self.wavelength,self.flux)
             ax1.set_title(element)
@@ -86,4 +88,4 @@ class Spectrum:
             ax1.set_xticks(self.lines[element])
             ax1.set_yscale('log')
             
-        plt.show(
+        plt.show()
