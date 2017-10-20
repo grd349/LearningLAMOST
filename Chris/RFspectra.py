@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 clf = RandomForestClassifier()
 
-sfile = 'my_data.csv'
+sfile = 'spectra_dataframe.csv'
 df = pd.read_csv(sfile, sep=',')
 
 colour = np.reshape(df.feature, (-1, 1))
