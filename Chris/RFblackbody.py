@@ -26,7 +26,11 @@ def blackbody(T):
         bandCounts[letter] = np.sum(E[lower:upper])
     
     return (-2.5 * np.log10(bandCounts["B"]))-(-2.5 * np.log10(bandCounts["V"]))
-
+   sns.kdeplot(error, ax=ax3, shade=True)
+    ax3.set_xlabel('Absolute Error / K')
+    ax3.set_ylabel('Fraction of Points with Given Error')
+    ax3.set_title('Kernel Density Estimator for Absolute Errors on Random Forest Model')
+    plt.show()
 #Creates an array of 800 random temperatures with mean 6000K, standard deviation 2000K
 temps = np.random.normal(6000,2000,800)
 temps = np.array([ abs(x) for x in temps])
@@ -44,7 +48,7 @@ fig, ax1 = plt.subplots()
 ax1.scatter(blackbodyList,temps)
 ax1.set_xlabel('B-V Feature')
 ax1.set_ylabel('Temperature / K')
-ax1.set_title('Plot of Temp vs. V-B Feature for Modelled Blackbody Spectra')
+ax1.set_title('Plot of Temp vs. B-V Feature for Modelled Blackbody Spectra')
 plt.show()
 print(np.sum(blackbodyList)) 
 

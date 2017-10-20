@@ -74,7 +74,7 @@ class Spectrum:
 #Defines a class which holds objects made by the spectrum class and forms a dataframe using their
 #header information. It then merges this dataframe with the DR1 catalog.
 class Spectra:
-    def __init__(self,DR1,catalog):python abs on list
+    def __init__(self,DR1,catalog):
         
         #Reads in the catalog and removes duplicate spectra with the same designation value
         self.df = pd.read_csv(catalog, sep='|')
@@ -124,17 +124,16 @@ ax1.scatter(spec.colourList,spec.totCountsList)
 ax1.set_xlabel('B-V Feature')
 ax1.set_ylabel('Total Counts')
 ax1.set_title("Scatter Plot of Total Counts against B-V Feature")
-#ax1.set_yscale('log')
+#plt.savefig("TotCountsColPlot")
 plt.show()
-#plt.savefig("FeaturePlot2")
 
-fig, ax = plt.subplots()
-ax.scatter([df.feature], df.teff)
-ax.set_xlabel('log(B/V) Feature')
-ax.set_ylabel('Effective Temperature / K')
-ax.set_title('Plot of Temperature of Stars Against Colour')
-plt.savefig("Tempcolplot")
-    
+fig, ax2 = plt.subplots()
+ax2.scatter([spec.df.feature], spec.df.teff)
+ax2.set_xlabel('B-V Feature')
+ax2.set_ylabel('Effective Temperature / K')
+ax2.set_title('Plot of Spectral Temperature Against B-V Feature')
+#plt.savefig("Tempcolplot")
+plt.show()
 """
 
 
