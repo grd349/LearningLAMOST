@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+from sklearn import cross_validation
 
 clf = RandomForestClassifier()
 
@@ -22,6 +22,7 @@ for i in range(len(temps)):
 
 accuracy = []
 
+"""
 #Runs random forest algorithm 20 times using simple train_test_split cross-validation method
 for j in range(0,20):  
     
@@ -32,8 +33,51 @@ for j in range(0,20):
     #Calculates accuracy of each model and adds to list
     acc = abs(test_pred - y_test)/(y_test*1.0)
     accuracy.append(acc)
+"""
 
-#Calulcates the mean and standard deviation from accuracy list
+kf = cross_validation.KFold(n=len(colour), n_folds=5, shuffle=True)
+
+#Uses k-folds to split the data into 5 sets and performs training on 4/5 sets then testing on the 5th set
+#in all five ways
+for train_index, test_index in kf:   
+    X_train, X_test = colour[train_index], colour[test_index]
+    y_train, y_test = temps[train_index], temps[test_index]
+    
+    #Fits the random forest to the training set and then predicts the temperature of the test set
+    clf = clf.fit(X_train,y_train)
+    test_pred = clf.predict(X_test)
+    
+    #Calculates absolute error on each point
+    error = test_pred - y_test
+    
+    fig, ax = plt.subplots(2,2)
+    
+    #Plots machine learned temperature against actual temperature of the spectra
+    ax[0][0].scatter(y_test, test_pred)
+    ax[0][0].set_xlabel('Actual Temperature / K')
+    ax[0][0].set_ylabel('Predicted Temperature / K')
+    ax[0][0].set_title('Predicted vs. Actual Temp using RFC')
+    
+    #Plots a kernel density estimator plot for the absolute errors
+    sns.kdeplot(error, ax=ax[0][1], shade=True)
+    ax[0][1].set_xlabel('Absolute Error / K')
+    ax[0][1].set_ylabel('Fraction of Points with Error')
+    ax[0][1].set_title('KDE Plot for Absolute Errors')
+
+    #Plots a residual plot for the predicted temp vs. the actual temperature
+    sns.residplot(y_test, test_pred, lowess=True, ax=ax[1][0])
+    ax[1][0].set_xlabel('Actual Temperature / K')
+    ax[1][0].set_ylabel('Residual of Fit')
+    ax[1][0].set_title('Residual Plot')
+    
+    ax[1][1].axis('off')
+    
+    plt.tight_layout()
+    
+plt.show()
+    
+"""
+#Calculates the mean and standard deviation from accuracy list
 mean_accuracy = np.mean(accuracy)
 std_accuracy = np.std(accuracy)
 
@@ -67,4 +111,4 @@ ax3.set_ylabel('Residual of Fit')
 ax3.set_title('Residual Plot for Predicted vs. Actual Spectral Temperature')
 plt.savefig('RFspectraOverfitresid')
 #plt.show()
-
+"""

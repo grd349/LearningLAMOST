@@ -26,11 +26,7 @@ def blackbody(T):
         bandCounts[letter] = np.sum(E[lower:upper])
     
     return (-2.5 * np.log10(bandCounts["B"]))-(-2.5 * np.log10(bandCounts["V"]))
-   sns.kdeplot(error, ax=ax3, shade=True)
-    ax3.set_xlabel('Absolute Error / K')
-    ax3.set_ylabel('Fraction of Points with Given Error')
-    ax3.set_title('Kernel Density Estimator for Absolute Errors on Random Forest Model')
-    plt.show()
+
 #Creates an array of 800 random temperatures with mean 6000K, standard deviation 2000K
 temps = np.random.normal(6000,2000,800)
 temps = np.array([ abs(x) for x in temps])
@@ -55,8 +51,6 @@ print(np.sum(blackbodyList))
 colour = np.reshape(blackbodyList, (-1, 1))
 
 kf = cross_validation.KFold(n=len(colour), n_folds=5, shuffle=True)
-
-error = 0
 
 #Uses k-folds to split the data into 5 sets and performs training on 4/5 sets then testing on the 5th set
 #in all five ways
