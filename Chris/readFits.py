@@ -101,10 +101,9 @@ class Spectra:
         
         #Creates a dataframe using the arrays
         df_spectra = pd.DataFrame(columns=['designation', 'feature', 'wavelength', 'flux'])
-        ids = np.column_stack((self.desigList, self.colourList, self.wavelengthList, self.fluxList))
-        for i in ids:
-            df_spectra.loc[len(df_spectra)] = [i[0], i[1], i[2], i[3]]
-
+        for i in range(len(self.desigList)):
+            df_spectra.loc[len(df_spectra)] = [self.desigList[i], self.colourList[i], self.wavelengthList[i], self.fluxList[i]]
+        
         #Merges the spectra dataframe with the catalog dataframe by matching designation values then
         #writes this information to a csv file
         self.df = self.df.merge(df_spectra, on='designation', how='inner')
@@ -117,7 +116,9 @@ class Spectra:
 #Constructs the Spectra variable from the DR1 data
 spec = Spectra('/data2/cpb405/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
 
-spec.plotFlux(70)
+#print spec.df["flux"]
+
+#spec.plotFlux(70)
 """
 fig, ax1 = plt.subplots()
 ax1.scatter(spec.colourList,spec.totCountsList)

@@ -17,24 +17,10 @@ df = pd.read_csv(sfile, sep=',')
 colour = np.reshape(df.feature, (-1, 1))
 
 temps = np.array(df["teff"].tolist())
+desig = np.array(df["designation"].tolist())
 
 for i in range(len(temps)):
     temps[i] = int(temps[i])
-
-accuracy = []
-
-"""
-#Runs random forest algorithm 20 times using simple train_test_split cross-validation method
-for j in range(0,20):  
-    
-    X_train, X_test, y_train, y_test = train_test_split(colour, temps, test_size=0.33, random_state=42)
-    clf = clf.fit(X_train,y_train)
-    test_pred = clf.predict(X_test)
-    
-    #Calculates accuracy of each model and adds to list
-    acc = abs(test_pred - y_test)/(y_test*1.0)
-    accuracy.append(acc)
-"""
 
 kf = cross_validation.KFold(n=len(colour), n_folds=5, shuffle=True)
 j=1
@@ -44,6 +30,7 @@ j=1
 for train_index, test_index in kf: 
     X_train, X_test = colour[train_index], colour[test_index]
     y_train, y_test = temps[train_index], temps[test_index]
+    desig_train, desig_test = desig[train_index], desig[test_index]
     
     #Fits the random forest to the training set and then predicts the temperature of the test set
     clf = clf.fit(X_train,y_train)
@@ -88,6 +75,20 @@ for train_index, test_index in kf:
     ax[1][1].set_ylabel('Predicted Temperature / K')
     ax[1][1].set_title('Predicted vs. Actual Temp using RFC')
     ax[1][1].set_ylim([3500,9000])
+    
+    index = np.argmax(abs(error))
+    row_index = df.loc[df['designation']==desig_test[index]].index[0]
+    flux = df.get_value(row_index,"flux")
+    wavelength = df.get_value(row_index,"wavelength")
+    
+    print(flux[0])
+    
+    for i in range(len(flux)):
+        flux[i] = float(flux[i])
+        wavelength[i] = float(wavelength[i])
+    
+    fig, ax2 = plt.subplots()
+    ax2.plot(flux, wavelength)
     
     #Adds MAD value as text in the bottom right of figure
     #ax[1][0].text(,0,'MAD = ' + str(MAD))
