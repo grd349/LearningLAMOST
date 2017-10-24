@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from astropy.stats import mad_std
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import cross_validation
@@ -52,7 +53,10 @@ for train_index, test_index in kf:
     error = test_pred - y_test
     
     #Calculates the median absolute deviation
-    MAD = np.median([abs(i) for i in(test_pred - np.median(test_pred))])
+    #MAD = np.median([abs(i) for i in(test_pred - np.median(test_pred))])
+    MAD = mad_std(error)
+    
+    #alpha=abs(error)/np.amax(abs(error))
     
     fig, ax = plt.subplots(2,2)
     
@@ -61,6 +65,7 @@ for train_index, test_index in kf:
     ax[0][0].set_xlabel('Actual Temperature / K')
     ax[0][0].set_ylabel('Predicted Temperature / K')
     ax[0][0].set_title('Predicted vs. Actual Temp using RFC')
+    ax[0][0].set_ylim([3500,9000])
     
     #Plots a kernel density estimator plot for the absolute errors
     sns.kdeplot(error, ax=ax[0][1], shade=True)
@@ -74,16 +79,25 @@ for train_index, test_index in kf:
     ax[1][0].set_ylabel('Residual of Fit')
     ax[1][0].set_title('Residual Plot')
     
-    ax[1][1].axis('off')
+    alpha = abs(error)/np.amax(abs(error))
+    col = y_test/np.amax(y_test)
+    colArray = np.asarray([(col[i], 0, 0.5, alpha[i]) for i in range(len(alpha))])
+    
+    ax[1][1].scatter(y_test, test_pred, c=colArray)
+    ax[1][1].set_xlabel('Actual Temperature / K')
+    ax[1][1].set_ylabel('Predicted Temperature / K')
+    ax[1][1].set_title('Predicted vs. Actual Temp using RFC')
+    ax[1][1].set_ylim([3500,9000])
     
     #Adds MAD value as text in the bottom right of figure
-    ax[1][0].text(np.amax(y_test)*1.5,0,'MAD = ' + str(MAD))
+    #ax[1][0].text(,0,'MAD = ' + str(MAD))
+    ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy=(0.05, 0.90), xycoords='axes fraction')
     
     filename = "RFKfolds" + str(j)
     j+=1
     
     plt.tight_layout()
-    plt.savefig(filename)
+    #plt.savefig(filename)
     
 plt.show()
     
