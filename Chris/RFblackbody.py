@@ -17,7 +17,8 @@ def blackbody(T):
     E = 1e-4*(8*np.pi*h*c)/((wavelength*1e-10)**5*(np.exp(h*c/((wavelength*1e-10)*k*T))-1))
     
     #Calculates the B-V feature for the blackbody
-    letters = {"B":[3980,4920], "V":[5070,5950]}
+    #letters = {"B":[3980,4920], "V":[5070,5950]}
+    letters = {"B":[4300,4600], "V":[5300,5700]}
     bandCounts = {"B":0, "V":0}
         
     for letter in letters:

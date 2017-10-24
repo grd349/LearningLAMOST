@@ -36,10 +36,11 @@ for j in range(0,20):
 """
 
 kf = cross_validation.KFold(n=len(colour), n_folds=5, shuffle=True)
+j=1
 
 #Uses k-folds to split the data into 5 sets and performs training on 4/5 sets then testing on the 5th set
 #in all five ways
-for train_index, test_index in kf:   
+for train_index, test_index in kf: 
     X_train, X_test = colour[train_index], colour[test_index]
     y_train, y_test = temps[train_index], temps[test_index]
     
@@ -49,6 +50,9 @@ for train_index, test_index in kf:
     
     #Calculates absolute error on each point
     error = test_pred - y_test
+    
+    #Calculates the median absolute deviation
+    MAD = np.median([abs(i) for i in(test_pred - np.median(test_pred))])
     
     fig, ax = plt.subplots(2,2)
     
@@ -72,7 +76,14 @@ for train_index, test_index in kf:
     
     ax[1][1].axis('off')
     
+    #Adds MAD value as text in the bottom right of figure
+    ax[1][0].text(np.amax(y_test)*1.5,0,'MAD = ' + str(MAD))
+    
+    filename = "RFKfolds" + str(j)
+    j+=1
+    
     plt.tight_layout()
+    plt.savefig(filename)
     
 plt.show()
     
