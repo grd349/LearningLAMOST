@@ -18,9 +18,9 @@ df = pd.read_csv(sfile, sep=',')
 colour = sp.reshape(df.colour, (-1, 1))
     #reshape the colour to a column vector for use in the algorithm
     
-designation = df['designation']
+designation = sp.array(df.designation.tolist())
 
-temp = sp.array([int(i) for i in df.teff])
+temp = sp.array([int(i) for i in df.teff.tolist()])
 
 fig, ax = plt.subplots()
 ax.scatter(colour, temp)#, c = temp)
@@ -80,7 +80,7 @@ for train_index, test_index in kf:
     ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy = (0.05, 0.90), xycoords = 'axes fraction')
    
     test_index = sp.argmax(abs(error))
-    df_index = df.loc[df.designation==designation[test_index]].index[0]
+    df_index = df.loc[df.designation==desig_test[test_index]].index[0]
     
     spectrum = Spectrum('/data2/mrs493/DR1/' + df.get_value(df_index,'filename'))
     spectrum.plotFlux(ax = ax[1][1], T = test_pred[test_index])
