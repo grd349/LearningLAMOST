@@ -6,6 +6,7 @@ from astropy.stats import mad_std
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import cross_validation
+from readFits import Spectrum
 
 clf = RandomForestClassifier()
 
@@ -70,25 +71,22 @@ for train_index, test_index in kf:
     col = y_test/np.amax(y_test)
     colArray = np.asarray([(col[i], 0, 0.5, alpha[i]) for i in range(len(alpha))])
     
+    """
     ax[1][1].scatter(y_test, test_pred, c=colArray)
     ax[1][1].set_xlabel('Actual Temperature / K')
     ax[1][1].set_ylabel('Predicted Temperature / K')
     ax[1][1].set_title('Predicted vs. Actual Temp using RFC')
     ax[1][1].set_ylim([3500,9000])
-    
+    """
     index = np.argmax(abs(error))
     row_index = df.loc[df['designation']==desig_test[index]].index[0]
-    flux = df.get_value(row_index,"flux")
-    wavelength = df.get_value(row_index,"wavelength")
     
-    print(flux[0])
+    spectrum = Spectrum('/data2/cpb405/DR1/' + df.get_value(index,'filename'))  
     
-    for i in range(len(flux)):
-        flux[i] = float(flux[i])
-        wavelength[i] = float(wavelength[i])
-    
-    fig, ax2 = plt.subplots()
-    ax2.plot(flux, wavelength)
+    ax[1][1].plot(spectrum.wavelength, spectrum.flux)
+    ax[1][1].set_xlabel('Wavelength / Angstroms')
+    ax[1][1].set_ylabel('Flux')
+    ax[1][1].set_title('Spectrum for Greatest Outlier')
     
     #Adds MAD value as text in the bottom right of figure
     #ax[1][0].text(,0,'MAD = ' + str(MAD))

@@ -14,6 +14,7 @@ class Spectrum:
         #Extract information from header file
         self.flux = (hdulist[0].data)[0]
         self.CLASS = hdulist[0].header["CLASS"]
+        self.NAME = hdulist[0].header["FILENAME"]
         self.DESIG = hdulist[0].header["DESIG"][7:]
         self.totCounts = np.sum(self.flux)
         
@@ -82,6 +83,7 @@ class Spectra:
     
         self.specList = np.array([])
         self.colourList = np.array([])
+        self.nameList = np.array([])
         self.totCountsList = np.array([])
         self.desigList = np.array([])
         self.fluxList = []
@@ -91,18 +93,16 @@ class Spectra:
         for fitsName in glob.glob(DR1):
             self.specList = np.append(self.specList,Spectrum(fitsName))
             self.colourList = np.append(self.colourList,self.specList[-1].BminusV)
+            self.nameList = np.append(self.nameList,self.specList[-1].NAME)
             self.totCountsList = np.append(self.totCountsList,self.specList[-1].totCounts)
             self.desigList = np.append(self.desigList,self.specList[-1].DESIG)
             self.fluxList.append(self.specList[-1].flux)
             self.wavelengthList.append(self.specList[-1].wavelength)
-
-        self.fluxList = np.array(self.fluxList)
-        self.wavelengthList = np.array(self.wavelengthList)
         
         #Creates a dataframe using the arrays
-        df_spectra = pd.DataFrame(columns=['designation', 'feature', 'wavelength', 'flux'])
+        df_spectra = pd.DataFrame(columns=['designation', 'feature', 'filename'])
         for i in range(len(self.desigList)):
-            df_spectra.loc[len(df_spectra)] = [self.desigList[i], self.colourList[i], self.wavelengthList[i], self.fluxList[i]]
+            df_spectra.loc[len(df_spectra)] = [self.desigList[i], self.colourList[i], self.nameList[i]]
         
         #Merges the spectra dataframe with the catalog dataframe by matching designation values then
         #writes this information to a csv file
