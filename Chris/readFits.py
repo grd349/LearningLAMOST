@@ -55,11 +55,11 @@ class Spectrum:
     def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots(figsize=[5,4])
         ax1.plot(self.wavelength,self.flux)
-        ax1.plot(self.wavelength,self.bbFlux)
+        #ax1.plot(self.wavelength,self.bbFlux)
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
-        #ax1.set_title("Class {}, Designation {}".format(self.CLASS,self.DESIG))
-        ax1.set_title("Class {}, Temperature {}K".format(self.CLASS,self.T))
+        ax1.set_title("Class {}, Designation {}".format(self.CLASS,self.DESIG))
+        #ax1.set_title("Class {}, Temperature {}K".format(self.CLASS,self.T))
         ax1.set_yscale('log')
 
         if inset in self.lines:
@@ -69,8 +69,8 @@ class Spectrum:
             ax2.set_xlim(self.lines[inset])
             ax2.set_yscale('log')	
             
-        plt.show()
-        #plt.savefig("Spectrum5")
+        #plt.show()
+        plt.savefig("SpectrumGap")
         
 #Defines a class which holds objects made by the spectrum class and forms a dataframe using their
 #header information. It then merges this dataframe with the DR1 catalog.
@@ -118,7 +118,9 @@ spec = Spectra('/data2/cpb405/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
 
 #print spec.df["flux"]
 
-#spec.plotFlux(70)
+
+spec.plotFlux(26)
+
 """
 fig, ax1 = plt.subplots()
 ax1.scatter(spec.colourList,spec.totCountsList)
