@@ -77,7 +77,7 @@ class Spectrum:
         if titles:
             ax.set_xlabel('Wavelength \ Angstroms')
             ax.set_ylabel('Flux')
-            ax.set_yscale('log')
+            #ax.set_yscale('log')
             ax.set_title('{} - {}'.format(self.SPID, self.CLASS))
 
         if element in self.lines:

@@ -38,8 +38,10 @@ add colour bar
 clf = RandomForestClassifier()
     #load the random forest clssifier
 
-kf = cross_validation.KFold(n = len(colour), n_folds = 5, shuffle = True)
+kf = cross_validation.KFold(n = len(colour), n_folds = 10, shuffle = True)
     #use kfolds to split the data
+
+models = []
 
 for train_index, test_index in kf:
     #cycle through each kfold and use it as a training set for the algorithm, using the remaining folds as test sets
@@ -49,6 +51,7 @@ for train_index, test_index in kf:
         #split the data into the given folds (need data in an sp.array for indexing to work)
     clf = clf.fit(X_train, y_train)
         #fit the model the the current training set
+
     test_pred = clf.predict(X_test)
         #Use the model to predict the temperatures of the test set
 
@@ -72,7 +75,7 @@ for train_index, test_index in kf:
     ax[0][1].set_title('KDE of Absolute Error on Temperature Prediction')
             #plot the univariant kernel density estimatorplt.axvline(letters[letter][0])
             
-    sns.residplot(y_test, test_pred, lowess = True, ax = ax[1][0])
+    sns.residplot(y_test, test_pred, lowess = True, ax = ax[1][0], line_kws={'color': 'red'})
     ax[1][0].set_title('Residuals of Prediction')
     ax[1][0].set_xlabel('Actual Temperature \ K')
     ax[1][0].set_ylabel('Prediction Residual \ K')
@@ -89,12 +92,59 @@ for train_index, test_index in kf:
     ax[1][1].set_ylabel('Flux')
     ax[1][1].set_title('Spectra and model blackbody curve\nfor greatest outlier')
     
-    ax[1][1].annotate('Error = {}\nClass: {}'.format(error[test_index], spectrum.CLASS), xy = (0.3, 0.1), xycoords = 'axes fraction')
-    
     plt.tight_layout()
+
+    models.append(clf.predict(colour))
+
+plt.show()
+
+final = sp.mean(models, 0)
+
+fig, ax = plt.subplots(2,2)
+    
+ax[0][0].scatter(temp, final)
+ax[0][0].set_xlabel('Actual temperature \ K')
+ax[0][0].set_ylabel('Predicted temperature \ K')
+ax[0][0].set_title('Actual vs. Predicted temperature')
+    #plot the actual vs. predicted temperature
+
+error = final - temp
+    #calculate the error of the fit
+
+MAD = stats.mad_std(error)
+    #calculate the MAD of the data
+
+sns.kdeplot(error, ax=ax[0][1], shade=True)
+ax[0][1].set_xlabel('Absolute Error')
+ax[0][1].set_ylabel('Fraction of Points with\nGiven Error')
+ax[0][1].set_title('KDE of Absolute Error on Temperature Prediction')
+    #plot the univariant kernel density estimatorplt.axvline(letters[letter][0])
+    
+sns.residplot(temp, final, lowess = True, ax = ax[1][0], line_kws={'color': 'red'})
+ax[1][0].set_title('Residuals of Prediction')
+ax[1][0].set_xlabel('Actual Temperature \ K')
+ax[1][0].set_ylabel('Prediction Residual \ K')
+    #plot the residuals of the predicted temperatures
+ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy = (0.05, 0.90), xycoords = 'axes fraction')
+   
+test_index = sp.argmax(abs(error))
+df_index = df.loc[df.designation==designation[test_index]].index[0]
+    
+spectrum = Spectrum('/data2/mrs493/DR1/' + df.get_value(df_index,'filename'))
+spectrum.plotFlux(ax = ax[1][1], T = final[test_index])
+
+ax[1][1].set_xlabel('Wavelength \ Angstroms')
+ax[1][1].set_ylabel('Flux')
+ax[1][1].set_title('Spectra and model blackbody curve\nfor greatest outlier')
+    
+plt.tight_layout()
 
 plt.show()
 
 '''
 try other features i.e. change band widths, move position, use single band etc.
 '''
+
+
+    
+
