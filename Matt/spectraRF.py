@@ -42,6 +42,7 @@ kf = cross_validation.KFold(n = len(colour), n_folds = 10, shuffle = True)
     #use kfolds to split the data
 
 models = []
+importance = []
 
 for train_index, test_index in kf:
     #cycle through each kfold and use it as a training set for the algorithm, using the remaining folds as test sets
@@ -55,20 +56,21 @@ for train_index, test_index in kf:
     test_pred = clf.predict(X_test)
         #Use the model to predict the temperatures of the test set
 
+    """
     fig, ax = plt.subplots(2,2)
     
-    ax[0][0].scatter(y_test, test_pred)
-    ax[0][0].set_xlabel('Actual temperature \ K')
-    ax[0][0].set_ylabel('Predicted temperature \ K')
-    ax[0][0].set_title('Actual vs. Predicted temperature')
-            #plot the actual vs. predicted temperature
-
     error = test_pred - y_test
         	#calculate the error of the fit
 
     MAD = stats.mad_std(error)
         #calculate the MAD of the data
 
+    ax[0][0].scatter(y_test, test_pred)
+    ax[0][0].set_xlabel('Actual temperature \ K')
+    ax[0][0].set_ylabel('Predicted temperature \ K')
+    ax[0][0].set_title('Actual vs. Predicted temperature')
+            #plot the actual vs. predicted temperature
+    
     sns.kdeplot(error, ax=ax[0][1], shade=True)
     ax[0][1].set_xlabel('Absolute Error')
     ax[0][1].set_ylabel('Fraction of Points with\nGiven Error')
@@ -95,14 +97,19 @@ for train_index, test_index in kf:
     plt.tight_layout()
 
     plt.show()
+    """
     
     models.append(clf.predict(colour))
-
-print('Averaged model')
+    
+    importance.append(clf.feature_importances_)
 
 final = sp.mean(models, 0)
 
 fig, ax = plt.subplots(2,2)
+
+name = 'rfc'
+
+fig.suptitle(name)
     
 ax[0][0].scatter(temp, final)
 ax[0][0].set_xlabel('Actual temperature \ K')
@@ -119,7 +126,7 @@ MAD = stats.mad_std(error)
 sns.kdeplot(error, ax=ax[0][1], shade=True)
 ax[0][1].set_xlabel('Absolute Error')
 ax[0][1].set_ylabel('Fraction of Points with\nGiven Error')
-ax[0][1].set_title('KDE of Absolute Error on Temperature Prediction')
+ax[0][1].set_title('KDE of Absolute Error\non Temperature Prediction')
     #plot the univariant kernel density estimatorplt.axvline(letters[letter][0])
     
 sns.residplot(temp, final, lowess = True, ax = ax[1][0], line_kws={'color': 'red'})
@@ -146,6 +153,8 @@ plt.show()
 spectrum.plotFlux(Tpred = final[test_index], Teff = temp[test_index])
 
 plt.show()
+
+print sp.mean(importance, 0)
 
 '''
 try other features i.e. change band widths, move position, use single band etc.
