@@ -86,7 +86,7 @@ for train_index, test_index in kf:
     df_index = df.loc[df.designation==desig_test[test_index]].index[0]
     
     spectrum = Spectrum('/data2/mrs493/DR1/' + df.get_value(df_index,'filename'))
-    spectrum.plotFlux(ax = ax[1][1], T = test_pred[test_index])
+    spectrum.plotFlux(ax = ax[1][1], Tpred = test_pred[test_index], Teff = y_test[test_index])
     
     ax[1][1].set_xlabel('Wavelength \ Angstroms')
     ax[1][1].set_ylabel('Flux')
@@ -94,9 +94,11 @@ for train_index, test_index in kf:
     
     plt.tight_layout()
 
+    plt.show()
+    
     models.append(clf.predict(colour))
 
-plt.show()
+print('Averaged model')
 
 final = sp.mean(models, 0)
 
@@ -131,13 +133,17 @@ test_index = sp.argmax(abs(error))
 df_index = df.loc[df.designation==designation[test_index]].index[0]
     
 spectrum = Spectrum('/data2/mrs493/DR1/' + df.get_value(df_index,'filename'))
-spectrum.plotFlux(ax = ax[1][1], T = final[test_index])
+spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = temp[test_index])
 
 ax[1][1].set_xlabel('Wavelength \ Angstroms')
 ax[1][1].set_ylabel('Flux')
 ax[1][1].set_title('Spectra and model blackbody curve\nfor greatest outlier')
     
 plt.tight_layout()
+
+plt.show()
+
+spectrum.plotFlux(Tpred = final[test_index], Teff = temp[test_index])
 
 plt.show()
 

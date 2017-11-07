@@ -53,18 +53,18 @@ class Spectrum:
         self.colour = self.bands['B'] - self.bands['V']
             #store the difference between the B and V bands as a feature
         
-    def plotFlux(self, ax = None, T = None, element = None, titles = False):
+    def plotFlux(self, ax = None, Tpred = None, Teff = None, element = None, titles = False):
         #method to plot the spectra and scaled blackbody curve, and also zoom in on element lines
         if not ax: fig, ax = plt.subplots()
         
         ax.plot(self.wavelength,self.flux)
         
-        if T:
+        if Tpred:
             h = 6.63e-34
             c = 3e8
             k = 1.38e-23
             
-            E = (8*sp.pi*h*c)/((self.wavelength*1e-10)**5*(sp.exp(h*c/((self.wavelength*1e-10)*k*T))-1))
+            E = (8*sp.pi*h*c)/((self.wavelength*1e-10)**5*(sp.exp(h*c/((self.wavelength*1e-10)*k*Tpred))-1))
             #Calculate an ideal black body curve for a temperature T
 
             fudge = self.totCounts/sp.sum(E)
@@ -72,13 +72,31 @@ class Spectrum:
             self.bbFlux = fudge*E
                 #the normalised blackbody curve
             
-            ax.plot(self.wavelength,self.bbFlux)
+            ax.plot(self.wavelength,self.bbFlux, ls = '--', label = 'Predicted')
                 #plot the flux and blackbody curve against wavelength
+        
+        if Teff:
+            h = 6.63e-34
+            c = 3e8
+            k = 1.38e-23
+            
+            E = (8*sp.pi*h*c)/((self.wavelength*1e-10)**5*(sp.exp(h*c/((self.wavelength*1e-10)*k*Teff))-1))
+            #Calculate an ideal black body curve for a temperature T
+
+            fudge = self.totCounts/sp.sum(E)
+                #normalise blackbody curve by scaling by the total counts ratio of the curve to the spectra        
+            self.bbFlux = fudge*E
+                #the normalised blackbody curve
+            
+            ax.plot(self.wavelength,self.bbFlux, ls = ':', label = 'Effective')
+                #plot the flux and blackbody curve against wavelength
+        
         if titles:
             ax.set_xlabel('Wavelength \ Angstroms')
             ax.set_ylabel('Flux')
-            #ax.set_yscale('log')
             ax.set_title('{} - {}'.format(self.SPID, self.CLASS))
+
+        ax.set_yscale('log')
 
         if element in self.lines:
 		#plot inset plot for selected element
