@@ -16,24 +16,28 @@ sfile = 'spectra_dataframe.csv'
 df = pd.read_csv(sfile, sep=',')
 
 #Reads in temperature and features from dataframe
-BminusV = np.array(df["BminusV"].tolist())
-BminusR = np.array(df["BminusR"].tolist())
-VminusR = np.array(df["VminusR"].tolist())
+BV = np.array(df["BV"].tolist())
+BR = np.array(df["BR"].tolist())
+BI = np.array(df["BI"].tolist())
+VR = np.array(df["VR"].tolist())
+VI = np.array(df["VI"].tolist())
+RI = np.array(df["RI"].tolist())
+
 totCounts = np.array(df["totCounts"].tolist())
 randomFeature = np.random.normal(0.5,0.2,len(totCounts))
 temps = np.array(df["teff"].tolist())
 desig = np.array(df["designation"].tolist())
 
-features = np.column_stack((BminusV,BminusR,VminusR,totCounts,randomFeature))
+features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,randomFeature))
 
-kf = cross_validation.KFold(n=len(BminusV), n_folds=5, shuffle=True)
+kf = cross_validation.KFold(n=len(BV), n_folds=5, shuffle=True)
 j = 1
 foldAverage = []
+
 """
 features_train, features_test, temp_train, temp_test = train_test_split(features, temps, test_size=0.5, random_state=0)
 
 tuned_params = [{'n_estimators':[1,10,20,40,60,80,100],'max_depth':[1,10,100,1000]}]
-
 
 clf = GridSearchCV(RandomForestRegressor(), tuned_params, cv=5)
 clf.fit(features_train, temp_train)
@@ -96,11 +100,12 @@ row_index = df.loc[df['designation']==desig[index]].index[0]
 finalSpectrum = readFits.Spectrum('/data2/mrs493/DR1/' + df.get_value(index,'filename'))  
 
 ax2[1][1].plot(finalSpectrum.wavelength, finalSpectrum.flux)
-ax2[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(df.get_value(index,'teff'),finalSpectrum.wavelength,finalSpectrum),'--',c='r')
-ax2[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(finalModel[index],finalSpectrum.wavelength,finalSpectrum),'--',c='b')
+ax2[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(df.get_value(index,'teff'),finalSpectrum.wavelength,finalSpectrum),'--',c='r',label='True Temp.')
+ax2[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(finalModel[index],finalSpectrum.wavelength,finalSpectrum),'--',c='b',label='Predicted Temp.')
 ax2[1][1].set_xlabel('Wavelength / Angstroms')
 ax2[1][1].set_ylabel('Flux')
 ax2[1][1].set_title('Spectrum for Greatest Outlier')
+ax2[1][1].legend()
 
 #Adds MAD value as text in the bottom right of figure
 #ax[1][0].text(,0,'MAD = ' + str(MAD))
