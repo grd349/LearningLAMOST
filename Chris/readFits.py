@@ -26,17 +26,6 @@ class Spectrum:
         self.wavelength = 10**(np.arange(init,init+disp*(len(self.flux)-0.9),disp))
         hdulist.close()
         
-        #Uses the equation for a blackbody to calculate an "ideal" model using the wavelength values of the actual spectrum
-        h = 6.63e-34
-        c = 3e8
-        k = 1.38e-23
-        self.T = 15000
-        E = 1e-4*(8*np.pi*h*c)/((self.wavelength*1e-10)**5*(np.exp(h*c/((self.wavelength*1e-10)*k*self.T))-1))
-        
-        #Normalises the model
-        self.normalise = self.totCounts/np.sum(E)
-        self.bbFlux = self.normalise*E
-        
         #Defines a set of wavelength for different colour bands
         letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270], "K":[19950,23850]}
         bandMean = {"B":0, "V":0, "R":0, "K":0}
@@ -65,7 +54,7 @@ class Spectrum:
     def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots(figsize=[5,4])
         ax1.plot(self.wavelength,self.flux)
-        #ax1.plot(self.wavelength,self.bbFlux)
+        ax1.plot(self.wavelength,blackbody(9000))
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
         ax1.set_title("Class {}, Designation {}".format(self.CLASS,self.DESIG))
@@ -123,7 +112,18 @@ class Spectra:
     #Calls the plot method in the Spectrum class
     def plotFlux(self,specNumber):
         self.specList[specNumber].plotFlux()
-        
+
+def blackbody(T,wavelength,Spectrum):
+    #Calculates the flux and wavelength for the blackbody
+    h = 6.63e-34
+    c = 3e8
+    k = 1.38e-23
+    E = 1e-4*(8*np.pi*h*c)/((wavelength*1e-10)**5*(np.exp(h*c/((wavelength*1e-10)*k*T))-1))
+
+    #Normalises the model
+    normalise = Spectrum.totCounts/np.sum(E)
+    return normalise*E
+    
 #Constructs the Spectra variable from the DR1 data
 #spec = Spectra('/data2/mrs493/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
 
