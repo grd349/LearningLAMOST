@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 from astropy import stats
 import seaborn as sns
 
+from sklearn.model_selection import train_test_split
+
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
-from sklearn import cross_validation
 from sklearn.neighbors import KNeighborsRegressor, RadiusNeighborsRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -26,66 +27,41 @@ designation = sp.array(df.designation.tolist())
 
 temp = sp.array(df.teff.tolist())
 
-"""
-possibly remove SVC, takes long time (~4 mins per fold)
-"""
-
-folds = 2
-
 names = ['KNeighbours', 'Radius Neighbours', 'Random Forest Regressor',
              'Linear Regression', 'Gaussian Process Regressor', 'Ada Boost Classifier']
 classifiers = [KNeighborsRegressor(), RadiusNeighborsRegressor(), RandomForestRegressor(),
                LinearRegression(), GaussianProcessRegressor(), AdaBoostRegressor()]
-    #load the random forest clssifier
 
-kf = cross_validation.KFold(n = len(colour), n_folds = folds, shuffle = True)
-    #use kfolds to split the data
+train, test = train_test_split(df, test_size=0.2)
+
+X_train = sp.reshape(train.colour.tolist(), (-1, 1))
+X_test = sp.reshape(test.colour.tolist(), (-1, 1))
+
+y_train = train.teff.tolist()
+y_test = test.teff.tolist()
 
 final = []
 MAD = []
 
 for name, clf in zip(names, classifiers):
     
-    ###importance = []
+    clf = clf.fit(X_train, y_train)
+        #fit the model the the current training set
 
-    models = sp.array([[sp.nan]*len(temp)]*folds)
-    
-    f = 0
-    
-    for train_index, test_index in kf:
-        
-        #cycle through each kfold and use it as a training set for the algorithm, using the remaining folds as test sets
-        X_train, X_test = colour[train_index], colour[test_index]
-        y_train, y_test = temp[train_index], temp[test_index]
-        desig_train, desig_test = designation[train_index], designation[test_index]
-            #split the data into the given folds (need data in an sp.array for indexing to work)
-        clf = clf.fit(X_train, y_train)
-            #fit the model the the current training set
-    
-        test_pred = clf.predict(X_test)
-            #Use the model to predict the temperatures of the test set
-        
-        ###models.append(clf.predict(colour))
-        
-        ###importance.append(clf.feature_importances_)
-        
-        models[f][test_index] = test_pred
-        
-        f += 1
-        
-    final.append(sp.nanmean(models, 0))
-    
+    final.append(clf.predict(X_test))
+        #Use the model to predict the temperatures of the test set
+            
     fig, ax = plt.subplots(2,2)
     
     fig.suptitle(name)
         
-    ax[0][0].scatter(temp, final[-1])
+    ax[0][0].scatter(y_test, final[-1])
     ax[0][0].set_xlabel('Actual temperature \ K')
     ax[0][0].set_ylabel('Predicted temperature \ K')
     ax[0][0].set_title('Actual vs. Predicted temperature')
         #plot the actual vs. predicted temperature
     
-    error = final[-1] - temp
+    error = final[-1] - y_test
         #calculate the error of the fit
     
     MAD.append(stats.mad_std(error))
@@ -97,7 +73,7 @@ for name, clf in zip(names, classifiers):
     ax[0][1].set_title('KDE of Absolute Error\non Temperature Prediction')
         #plot the univariant kernel density estimatorplt.axvline(letters[letter][0])
         
-    sns.residplot(temp, final[-1], lowess = True, ax = ax[1][0], line_kws={'color': 'red'})
+    sns.residplot(sp.array(y_test), final[-1], lowess = True, ax = ax[1][0], line_kws={'color': 'red'})
     ax[1][0].set_title('Residuals of Prediction')
     ax[1][0].set_xlabel('Actual Temperature \ K')
     ax[1][0].set_ylabel('Prediction Residual \ K')
@@ -109,11 +85,10 @@ for name, clf in zip(names, classifiers):
     look into residplot - appears residual not propotrional to error (see SGD plot)
     """
         
-    index = sp.argmax(abs(error))
-    df_index = df.loc[df.designation==designation[index]].index[0]
-        
-    spectrum = Spectrum('/data2/mrs493/DR1/' + df.get_value(df_index,'filename'))
-    spectrum.plotFlux(ax = ax[1][1], Tpred = final[-1][index], Teff = temp[index])
+    test_index = sp.argmax(abs(error))
+
+    spectrum = Spectrum('/data2/mrs493/DR1/' + test.filename.tolist()[test_index])
+    spectrum.plotFlux(ax = ax[1][1], Tpred = final[-1][test_index], Teff = y_test[test_index])
     
     ax[1][1].set_xlabel('Wavelength \ Angstroms')
     ax[1][1].set_ylabel('Flux')
@@ -135,10 +110,12 @@ find feature importance
 compare cross-validatted to non-cross-validated models
 '''
 
-fig, ax = plt.subplots(len(names), sharex = True, figsize = (6, 3*len(names)))
-  
-for i in range(len(names)):
-    ax[i].scatter(temp, final[i])
+fig, ax = plt.subplots(3, 3, sharex = True, sharey = True)
+ax = sp.ndarray.flatten(ax)
+fig.suptitle('Regressor Comparison')
+
+for i in range(len(ax)):
+    ax[i].scatter(y_test, final[i])
     ax[i].set_title(names[i])
     ax[i].annotate('MAD = {0:.2f}'.format(MAD[i]), xy = (0.05, 0.90), xycoords = 'axes fraction', color = 'red')
     
