@@ -114,9 +114,9 @@ for name, clf, regressor in zip(names, classifiers, regressors):
     ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy = (0.05, 0.90), xycoords = 'axes fraction')
         #write the MAD in the plot
         
-        """
-        look into residplot - appears residual not propotrional to error (see SGD plot)
-        """
+    """
+    look into residplot - appears residual not propotrional to error (see SGD plot)
+    """
         
     test_index = sp.argmax(abs(error))
     df_index = df.loc[df.designation==designation[test_index]].index[0]
