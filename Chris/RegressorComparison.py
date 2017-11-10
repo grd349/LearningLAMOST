@@ -6,8 +6,9 @@ from astropy.stats import mad_std
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.linear_model import LinearRegression, RANSACRegressor, HuberRegressor, TheilSenRegressor
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
 
 #Reads in dataframe
 sfile = 'spectra_dataframe.csv'
@@ -30,7 +31,7 @@ features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,randomFeature))
     
 features_train, features_test, temp_train, temp_test = train_test_split(features, temps, test_size=0.1)
 
-names = ["Random Forest", "Ada Boost", "Huber", "Linear Regression", "K Neighbours", "RANSAC", "TheilSen", "Quadratic", "Cubic"]
+names = ["Random Forest", "Ada Boost", "Huber", "Linear Regression", "K Neighbours", "RANSAC", "TheilSen", "Gaussian Process", "SVR"]
 
 classifiers = [RandomForestRegressor(),
                AdaBoostRegressor(),
@@ -39,14 +40,14 @@ classifiers = [RandomForestRegressor(),
                KNeighborsRegressor(),
                RANSACRegressor(),
                TheilSenRegressor(),
-               PolynomialFeatures(degree=2),
-               PolynomialFeatures(degree=3)]
+               GaussianProcessRegressor(),
+               SVR(kernel='rbf', gamma=0.1)]
 
 
 fig, axes = plt.subplots(3,3,sharex=True,sharey=True)
-fig.suptitle('Regressor Comparison',y=0.98,fontsize=18)
-fig.text(0.5, 0.04, 'Actual Temperature / K', ha='center')
-fig.text(0.04, 0.5, 'Predicted Temperature / K', va='center', rotation='vertical')
+fig.suptitle('Regressor Comparison',y=1.03,fontsize=18)
+fig.text(0.5, -0.02, 'Actual Temperature / K', ha='center')
+fig.text(-0.01, 0.5, 'Predicted Temperature / K', va='center', rotation='vertical')
 
 for i,ax in enumerate(axes.flatten()):
     
@@ -63,6 +64,6 @@ for i,ax in enumerate(axes.flatten()):
     ax.set_ylim([3000,9000])
     ax.annotate('{0:.2f}'.format(MAD), xy=(0.63, 0.05), xycoords='axes fraction',color='r')
     
-    #plt.tight_layout()
+    plt.tight_layout()
 
 plt.show()
