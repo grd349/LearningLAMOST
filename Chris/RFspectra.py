@@ -25,6 +25,7 @@ RI = np.array(df["RI"].tolist())
 
 totCounts = np.array(df["totCounts"].tolist())
 spike = np.array(df["spike"].tolist())
+
 randomFeature = np.random.normal(0.5,0.2,len(totCounts))
 temps = np.array(df["teff"].tolist())
 desig = np.array(df["designation"].tolist())

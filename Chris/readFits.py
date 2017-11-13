@@ -16,12 +16,20 @@ class Spectrum:
         
         #Extract information from header file
         self.flux = (hdulist[0].data)[0]
+        self.AND = (hdulist[0].data)[3]
+        self.OR = (hdulist[0].data)[4]
         self.CLASS = hdulist[0].header["CLASS"]
         self.NAME = hdulist[0].header["FILENAME"]
         self.DESIG = hdulist[0].header["DESIG"][7:]
         self.totCounts = np.sum(self.flux)
         
-        self.fluxSmooth = convolve(self.flux,Box1DKernel(10))
+        width = 10
+        
+        self.fluxSmooth = convolve(self.flux,Box1DKernel(width))[5*width:-5*width]
+        
+        self.flux = self.flux[5*width:-5*width]
+        self.AND = self.AND[5*width:-5*width]
+        self.OR = self.OR[5*width:-5*width]
         
         #Creates a wavelength array using the central wavelength of the first pixel and the dispersion per pixel
         init = hdulist[0].header["COEFF0"]
@@ -44,7 +52,7 @@ class Spectrum:
             bandFlux[bandFlux<0] = np.nan
             bandMean[letter] = np.nanmean(bandFlux)
             
-        #Calculates a B-V feature
+        #Calculates colour-colour features
         self.BV = colourFeature(bandMean["B"],bandMean["V"],self)
         self.BR = colourFeature(bandMean["B"],bandMean["R"],self)
         self.BI = colourFeature(bandMean["B"],bandMean["I"],self)
@@ -52,7 +60,15 @@ class Spectrum:
         self.VI = colourFeature(bandMean["V"],bandMean["I"],self)
         self.RI = colourFeature(bandMean["R"],bandMean["I"],self)
         
-        self.spike = np.median(np.diff(self.flux[::10]))
+        #Chooses a region of the spectrum to investigate abundance of spectral lines
+        lowerFlux = np.searchsorted(self.wavelength,5000,side="left")
+        upperFlux = np.searchsorted(self.wavelength,7000,side="right")
+        midFlux = self.fluxSmooth[lowerFlux:upperFlux]
+            
+        self.spike = np.median(np.diff(midFlux[::10]))
+               
+        if self.spike != self.spike:
+            self.VALID = False
                 
     #Defines a method which plots the spectrum with the option of an inset plot showing a characteristic line
     def plotFlux(self, inset=None):    
@@ -65,7 +81,7 @@ class Spectrum:
         ax1.set_title("Class {}, Designation {}".format(self.CLASS,self.DESIG))
         #ax1.set_title("Class {}, Temperature {}K".format(self.CLASS,self.T))
         ax1.set_yscale('log')
-
+        
         if inset in self.lines:
             ax2 = fig.add_axes([0.25,0.25,0.25,0.25])
             ax2.plot(self.wavelength,self.flux)
@@ -146,8 +162,7 @@ def colourFeature(col1,col2,Spectrum):
     #Calculate a subtraction feature from two colour indexes
     feature = (-2.5 * np.log10(col1))-(-2.5 * np.log10(col2))
     
-    if feature == np.nan or feature == (-1)*np.inf or feature == np.inf:
-            print(Spectrum.NAME)
+    if feature != feature or feature == (-1)*np.inf or feature == np.inf:
             Spectrum.VALID = False
             
     return feature
@@ -157,7 +172,8 @@ def colourFeature(col1,col2,Spectrum):
 #Constructs the Spectra variable from the DR1 data
 #spec = Spectra('/data2/mrs493/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
 
-#spec.plotFlux(10)
+#for i in range(10):
+ #   spec.plotFlux(i)
 
 
 
