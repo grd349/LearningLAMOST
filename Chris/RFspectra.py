@@ -24,17 +24,18 @@ VI = np.array(df["VI"].tolist())
 RI = np.array(df["RI"].tolist())
 
 totCounts = np.array(df["totCounts"].tolist())
+spike = np.array(df["spike"].tolist())
 randomFeature = np.random.normal(0.5,0.2,len(totCounts))
 temps = np.array(df["teff"].tolist())
 desig = np.array(df["designation"].tolist())
 
-features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,randomFeature))
+features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,spike,randomFeature))
 
 kf = cross_validation.KFold(n=len(BV), n_folds=5, shuffle=True)
 j = 1
 foldAverage = []
 
-features_train, features_test, temp_train, temp_test = train_test_split(features, temps, test_size=0.5, random_state=0)
+features_train, features_test, temp_train, temp_test = train_test_split(features, temps, test_size=0.5)
 
 #tuned_params = [{'n_estimators':[1,10,20,40,60,80,100],'max_depth':[1,10,100,1000]}]
 
@@ -94,6 +95,7 @@ ax[1][1].legend()
 #Adds MAD value as text in the bottom right of figure
 #ax[1][0].text(,0,'MAD = ' + str(MAD))
 ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy=(0.05, 0.90), xycoords='axes fraction',color='r')
+ax[1][1].annotate('Type = {}'.format(finalSpectrum.CLASS), xy=(0.55, 0.08), xycoords='axes fraction',color='r')
 
 plt.tight_layout()
 plt.show()
