@@ -60,6 +60,7 @@ class Spectrum:
         self.VI = colourFeature(bandMean["V"],bandMean["I"],self)
         self.RI = colourFeature(bandMean["R"],bandMean["I"],self)
         
+        """
         #Chooses a region of the spectrum to investigate abundance of spectral lines
         lowerFlux = np.searchsorted(self.wavelength,5000,side="left")
         upperFlux = np.searchsorted(self.wavelength,7000,side="right")
@@ -69,7 +70,15 @@ class Spectrum:
                
         if self.spike != self.spike:
             self.VALID = False
-                
+        
+        self.turningPoint = 0
+        
+        diffs = np.diff(self.fluxSmooth)
+        
+        for i in range(len(diffs)-1):
+            if diffs[i]*diffs[i+1] < 0 and abs(diffs[i]*diffs[i+1]) > 10 and diffs[i]==diffs[i] and diffs[i+1]==diffs[i+1]:
+                self.turningPoint+=1
+        """                      
     #Defines a method which plots the spectrum with the option of an inset plot showing a characteristic line
     def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots(figsize=[5,4])
@@ -110,7 +119,8 @@ class Spectra:
         VIList = np.array([])
         RIList = np.array([])
         self.totCountsList = np.array([])
-        spikeList = np.array([])
+        #spikeList = np.array([])
+        #tpList = np.array([])
         
         self.nameList = np.array([])
         self.desigList = np.array([])
@@ -127,16 +137,17 @@ class Spectra:
                 VIList = np.append(VIList,self.specList[-1].VI)
                 RIList = np.append(RIList,self.specList[-1].RI)
                 self.totCountsList = np.append(self.totCountsList,self.specList[-1].totCounts)
-                spikeList = np.append(spikeList,self.specList[-1].spike)
+                #spikeList = np.append(spikeList,self.specList[-1].spike)
+                #tpList = np.append(tpList,self.specList[-1].turningPoint)
                 
                 self.nameList = np.append(self.nameList,self.specList[-1].NAME)
                 self.desigList = np.append(self.desigList,self.specList[-1].DESIG)
         
         #Creates a dataframe using the arrays
-        df_spectra = pd.DataFrame(columns=['designation','BV','BR','BI','VR','VI','RI','totCounts','spike','filename'])
+        df_spectra = pd.DataFrame(columns=['designation','BV','BR','BI','VR','VI','RI','totCounts','spike','turningPoints','filename'])
         for i in range(len(self.desigList)):
             df_spectra.loc[len(df_spectra)] = [self.desigList[i], BVList[i], BRList[i], BIList[i], VRList[i], VIList[i],
-                           RIList[i], self.totCountsList[i], spikeList[i], self.nameList[i]]
+                           RIList[i], self.totCountsList[i], self.nameList[i]]
         
         #Merges the spectra dataframe with the catalog dataframe by matching designation values then
         #writes this information to a csv file
