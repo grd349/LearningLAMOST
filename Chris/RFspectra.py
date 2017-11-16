@@ -24,14 +24,14 @@ VI = np.array(df["VI"].tolist())
 RI = np.array(df["RI"].tolist())
 
 totCounts = np.array(df["totCounts"].tolist())
-#spike = np.array(df["spike"].tolist())
+spike = np.array(df["spike"].tolist())
 #turningPoints = np.array(df["turningPoints"].tolist())
 
 randomFeature = np.random.normal(0.5,0.2,len(totCounts))
 temps = np.array(df["teff"].tolist())
 desig = np.array(df["designation"].tolist())
 
-features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,randomFeature))
+features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,spike,randomFeature))
 
 kf = cross_validation.KFold(n=len(BV), n_folds=5, shuffle=True)
 j = 1

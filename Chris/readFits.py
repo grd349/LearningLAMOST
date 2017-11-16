@@ -25,21 +25,32 @@ class Spectrum:
         
         width = 10
         
-        self.fluxSmooth = convolve(self.flux,Box1DKernel(width))[5*width:-5*width]
+        #NaNs every flux that is less than zero (these are artificial)
+        self.flux[self.flux < 0] = np.nan
         
-        self.flux = self.flux[5*width:-5*width]
-        self.AND = self.AND[5*width:-5*width]
-        self.OR = self.OR[5*width:-5*width]
-        
+        #Smooths the spectrum to remove noise by convolving it with a running boxcar function
+        self.fluxSmooth = convolve(self.flux,Box1DKernel(width))[5*width:-5*width]     
+    
         #Creates a wavelength array using the central wavelength of the first pixel and the dispersion per pixel
         init = hdulist[0].header["COEFF0"]
         disp = hdulist[0].header["COEFF1"]      
         self.wavelength = 10**(np.arange(init,init+disp*(len(self.flux)-0.9),disp))
         hdulist.close()
         
+        #Trims the ends of the arrays to remove edge effects from the boxcar function
+        self.flux = self.flux[5*width:-5*width]
+        self.AND = self.AND[5*width:-5*width]
+        self.OR = self.OR[5*width:-5*width]
+        self.wavelength = self.wavelength[5*width:-5*width]
+        
+        artifLower = np.searchsorted(self.wavelength,5570,side="left")
+        artifUpper = np.searchsorted(self.wavelength,5590,side="right")
+        
+        self.flux[artifLower:artifUpper] = np.nan
+    
         #Defines a set of wavelength for different colour bands
         letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
-        bandMean = {"B":0, "V":0, "R":0, "K":0}
+        bandMean = {}
         
         #Defines a wavelength range for characteristic absorption lines in the spectrum
         self.lines = {'Iron':[3800, 3900]}
@@ -48,11 +59,12 @@ class Spectrum:
         for letter in letters:
             lower = np.searchsorted(self.wavelength,letters[letter][0],side="left")
             upper = np.searchsorted(self.wavelength,letters[letter][1],side="right")
-            bandFlux = self.fluxSmooth[lower:upper]
-            bandFlux[bandFlux<0] = np.nan
+            
+            #Calculates a mean number of counts ignoring NaNs for each colour band
+            bandFlux = self.flux[lower:upper]
             bandMean[letter] = np.nanmean(bandFlux)
             
-        #Calculates colour-colour features
+        #Produces colour minus colour features
         self.BV = colourFeature(bandMean["B"],bandMean["V"],self)
         self.BR = colourFeature(bandMean["B"],bandMean["R"],self)
         self.BI = colourFeature(bandMean["B"],bandMean["I"],self)
@@ -64,13 +76,14 @@ class Spectrum:
         #Chooses a region of the spectrum to investigate abundance of spectral lines
         lowerFlux = np.searchsorted(self.wavelength,5000,side="left")
         upperFlux = np.searchsorted(self.wavelength,7000,side="right")
-        midFlux = self.fluxSmooth[lowerFlux:upperFlux]
+        midFlux = self.flux[lowerFlux:upperFlux]
             
-        self.spike = np.median(np.diff(midFlux[::10]))
+        self.spike = np.median(np.diff(midFlux))
                
-        if self.spike != self.spike:
-            self.VALID = False
-        
+        #if self.spike != self.spike:
+        #    self.VALID = False
+        """
+        """
         self.turningPoint = 0
         
         diffs = np.diff(self.fluxSmooth)
@@ -83,12 +96,10 @@ class Spectrum:
     def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots(figsize=[5,4])
         ax1.plot(self.wavelength,self.flux)
-        ax1.plot(self.wavelength,self.fluxSmooth)
-        #ax1.plot(self.wavelength,blackbody(9000))
+        #ax1.plot(self.wavelength,self.fluxSmooth)
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
         ax1.set_title("Class {}, Designation {}".format(self.CLASS,self.DESIG))
-        #ax1.set_title("Class {}, Temperature {}K".format(self.CLASS,self.T))
         ax1.set_yscale('log')
         
         if inset in self.lines:
@@ -99,7 +110,6 @@ class Spectrum:
             ax2.set_yscale('log')	
             
         plt.show()
-        #plt.savefig("SpectrumGap")
         
 #Defines a class which holds objects made by the spectrum class and forms a dataframe using their
 #header information. It then merges this dataframe with the DR1 catalog.
@@ -119,7 +129,7 @@ class Spectra:
         VIList = np.array([])
         RIList = np.array([])
         self.totCountsList = np.array([])
-        #spikeList = np.array([])
+        spikeList = np.array([])
         #tpList = np.array([])
         
         self.nameList = np.array([])
@@ -144,7 +154,7 @@ class Spectra:
                 self.desigList = np.append(self.desigList,self.specList[-1].DESIG)
         
         #Creates a dataframe using the arrays
-        df_spectra = pd.DataFrame(columns=['designation','BV','BR','BI','VR','VI','RI','totCounts','spike','turningPoints','filename'])
+        df_spectra = pd.DataFrame(columns=['designation','BV','BR','BI','VR','VI','RI','totCounts','filename'])
         for i in range(len(self.desigList)):
             df_spectra.loc[len(df_spectra)] = [self.desigList[i], BVList[i], BRList[i], BIList[i], VRList[i], VIList[i],
                            RIList[i], self.totCountsList[i], self.nameList[i]]
@@ -181,10 +191,10 @@ def colourFeature(col1,col2,Spectrum):
     
     
 #Constructs the Spectra variable from the DR1 data
-#spec = Spectra('/data2/mrs493/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
+spec = Spectra('/data2/cpb405/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
 
-#for i in range(10):
- #   spec.plotFlux(i)
+for i in range(10):
+    spec.plotFlux(i)
 
 
 
