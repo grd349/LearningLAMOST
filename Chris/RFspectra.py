@@ -22,16 +22,19 @@ BI = np.array(df["BI"].tolist())
 VR = np.array(df["VR"].tolist())
 VI = np.array(df["VI"].tolist())
 RI = np.array(df["RI"].tolist())
+HalphaEW = np.array(df["HalphaEW"].tolist())
+HbetaEW = np.array(df["HbetaEW"].tolist())
+HgammaEW = np.array(df["HgammaEW"].tolist())
 
 totCounts = np.array(df["totCounts"].tolist())
-spike = np.array(df["spike"].tolist())
+#spike = np.array(df["spike"].tolist())
 #turningPoints = np.array(df["turningPoints"].tolist())
 
 randomFeature = np.random.normal(0.5,0.2,len(totCounts))
 temps = np.array(df["teff"].tolist())
 desig = np.array(df["designation"].tolist())
 
-features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,spike,randomFeature))
+features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,HalphaEW,HbetaEW,HgammaEW,randomFeature))
 
 kf = cross_validation.KFold(n=len(BV), n_folds=5, shuffle=True)
 j = 1
@@ -97,7 +100,7 @@ ax[1][1].legend()
 #Adds MAD value as text in the bottom right of figure
 #ax[1][0].text(,0,'MAD = ' + str(MAD))
 ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy=(0.05, 0.90), xycoords='axes fraction',color='r')
-ax[1][1].annotate('Type = {}'.format(finalSpectrum.CLASS), xy=(0.55, 0.08), xycoords='axes fraction',color='r')
+#ax[1][1].annotate('Type = {}'.format(finalSpectrum.CLASS), xy=(0.55, 0.08), xycoords='axes fraction',color='r')
 
 plt.tight_layout()
 plt.show()

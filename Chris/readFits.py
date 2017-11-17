@@ -21,7 +21,6 @@ class Spectrum:
         self.CLASS = hdulist[0].header["CLASS"]
         self.NAME = hdulist[0].header["FILENAME"]
         self.DESIG = hdulist[0].header["DESIG"][7:]
-        self.totCounts = np.sum(self.flux)
         
         width = 10
         
@@ -47,7 +46,9 @@ class Spectrum:
         artifUpper = np.searchsorted(self.wavelength,5590,side="right")
         
         self.flux[artifLower:artifUpper] = np.nan
-    
+        
+        self.totCounts = np.nansum(self.flux)
+        
         #Defines a set of wavelength for different colour bands
         letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
         bandMean = {}
@@ -71,6 +72,10 @@ class Spectrum:
         self.VR = colourFeature(bandMean["V"],bandMean["R"],self)
         self.VI = colourFeature(bandMean["V"],bandMean["I"],self)
         self.RI = colourFeature(bandMean["R"],bandMean["I"],self)
+        
+        self.HalphaEW = specLine([6555,6575],self)
+        self.HbetaEW = specLine([4855,4870],self)
+        self.HgammaEW = specLine([4320,4370],self)
         
         """
         #Chooses a region of the spectrum to investigate abundance of spectral lines
@@ -96,7 +101,8 @@ class Spectrum:
     def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots(figsize=[5,4])
         ax1.plot(self.wavelength,self.flux)
-        #ax1.plot(self.wavelength,self.fluxSmooth)
+        ax1.axvline(4340)
+        ax1.plot(self.wavelength,self.fluxSmooth)
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
         ax1.set_title("Class {}, Designation {}".format(self.CLASS,self.DESIG))
@@ -107,7 +113,7 @@ class Spectrum:
             ax2.plot(self.wavelength,self.flux)
             ax2.set_title(inset)
             ax2.set_xlim(self.lines[inset])
-            ax2.set_yscale('log')	
+            ax2.set_yscalartifLower = np.searchsorted(self.wavelength,5570,side="left")
             
         plt.show()
         
@@ -119,45 +125,37 @@ class Spectra:
         #Reads in the catalog and removes duplicate spectra with the same designation value
         self.df = pd.read_csv(catalog, sep='|')
         self.df.drop_duplicates(subset='designation', inplace=True)
-    
-        self.specList = np.array([])
         
-        BVList = np.array([])
-        BRList = np.array([])
-        BIList = np.array([])
-        VRList = np.array([])
-        VIList = np.array([])
-        RIList = np.array([])
-        self.totCountsList = np.array([])
-        spikeList = np.array([])
+        self.specList,BV,BR,BI,VR,VI,RI,totCounts,HalphaEW,HbetaEW,HgammaEW,name,desig=(np.array([]) for i in range(13))
+        #spikeList = np.array([])
         #tpList = np.array([])
-        
-        self.nameList = np.array([])
-        self.desigList = np.array([])
         
         #Cycles through each spectrum, adding their header information to arrays
         for fitsName in glob.glob(DR1):
             if Spectrum(fitsName).VALID:
                 self.specList = np.append(self.specList,Spectrum(fitsName))
                 
-                BVList = np.append(BVList,self.specList[-1].BV)
-                BRList = np.append(BRList,self.specList[-1].BR)
-                BIList = np.append(BIList,self.specList[-1].BI)
-                VRList = np.append(VRList,self.specList[-1].VR)
-                VIList = np.append(VIList,self.specList[-1].VI)
-                RIList = np.append(RIList,self.specList[-1].RI)
-                self.totCountsList = np.append(self.totCountsList,self.specList[-1].totCounts)
+                BV = np.append(BV,self.specList[-1].BV)
+                BR = np.append(BR,self.specList[-1].BR)
+                BI = np.append(BI,self.specList[-1].BI)
+                VR = np.append(VR,self.specList[-1].VR)
+                VI = np.append(VI,self.specList[-1].VI)
+                RI = np.append(RI,self.specList[-1].RI)
+                totCounts = np.append(totCounts,self.specList[-1].totCounts)
+                HalphaEW = np.append(HalphaEW,self.specList[-1].HalphaEW)
+                HbetaEW = np.append(HbetaEW,self.specList[-1].HbetaEW)
+                HgammaEW = np.append(HgammaEW,self.specList[-1].HgammaEW)
                 #spikeList = np.append(spikeList,self.specList[-1].spike)
                 #tpList = np.append(tpList,self.specList[-1].turningPoint)
                 
-                self.nameList = np.append(self.nameList,self.specList[-1].NAME)
-                self.desigList = np.append(self.desigList,self.specList[-1].DESIG)
+                name = np.append(name,self.specList[-1].NAME)
+                desig = np.append(desig,self.specList[-1].DESIG)
         
         #Creates a dataframe using the arrays
-        df_spectra = pd.DataFrame(columns=['designation','BV','BR','BI','VR','VI','RI','totCounts','filename'])
-        for i in range(len(self.desigList)):
-            df_spectra.loc[len(df_spectra)] = [self.desigList[i], BVList[i], BRList[i], BIList[i], VRList[i], VIList[i],
-                           RIList[i], self.totCountsList[i], self.nameList[i]]
+        df_spectra = pd.DataFrame(columns=['designation','BV','BR','BI','VR','VI','RI','totCounts','HalphaEW','HbetaEW','HgammaEW','filename'])
+        for i in range(len(desig)):
+            df_spectra.loc[len(df_spectra)] = [desig[i], BV[i], BR[i], BI[i], VR[i], VI[i],
+                           RI[i], totCounts[i], HalphaEW[i], HbetaEW[i], HgammaEW[i], name[i]]
         
         #Merges the spectra dataframe with the catalog dataframe by matching designation values then
         #writes this information to a csv file
@@ -188,13 +186,26 @@ def colourFeature(col1,col2,Spectrum):
             
     return feature
 
+def specLine(wavelengths,Spectrum):
+    wavLower = np.searchsorted(Spectrum.wavelength,wavelengths[0],side="left")
+    wavUpper = np.searchsorted(Spectrum.wavelength,wavelengths[1],side="right")
     
+    actualArea = np.trapz(Spectrum.flux[wavLower:wavUpper],Spectrum.wavelength[wavLower:wavUpper])
+    theoryArea = (Spectrum.flux[wavLower]+Spectrum.flux[wavUpper-1])*(Spectrum.wavelength[wavUpper-1]-Spectrum.wavelength[wavLower])/2.
+    
+    equivWidth = (theoryArea-actualArea)/theoryArea * (Spectrum.wavelength[wavUpper-1]-Spectrum.wavelength[wavLower])
+    
+    if equivWidth != equivWidth:
+            Spectrum.VALID = False
+            
+    return equivWidth
     
 #Constructs the Spectra variable from the DR1 data
 spec = Spectra('/data2/cpb405/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
-
-for i in range(10):
+"""
+for i in range(13):
     spec.plotFlux(i)
-
+    #print(spec.specList[i].equivWidth)
+"""
 
 
