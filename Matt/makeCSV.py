@@ -6,8 +6,6 @@ import glob
 from astropy.io import fits
 from astropy.convolution import convolve, Box1DKernel
 
-import matplotlib.pyplot as plt
-
 width = 10
 
 sfile = '/data2/mrs493/dr1_stellar.csv'
@@ -52,6 +50,15 @@ for fitsName in glob.glob('/data2/mrs493/DR1/*.fits'):
     start
     '''
     
+    testing = sp.diff(flux[::10])
+    testing2 = (testing==testing and abs(testing)>10)
+#    counts = [abs(testing)]    
+    
+    
+    '''
+    end
+    '''
+    
     eqWid = {}
     
     for line in lines:
@@ -70,10 +77,6 @@ for fitsName in glob.glob('/data2/mrs493/DR1/*.fits'):
         
         if not eqWid[line] == eqWid[line]: valid = False
              
-    '''
-    end
-    '''
-    
     bands = {}
     
     for letter in letters:
