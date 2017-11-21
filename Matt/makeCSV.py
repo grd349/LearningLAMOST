@@ -6,6 +6,8 @@ import glob
 from astropy.io import fits
 from astropy.convolution import convolve, Box1DKernel
 
+import matplotlib.pyplot as plt
+
 width = 10
 
 sfile = '/data2/mrs493/dr1_stellar.csv'
@@ -20,7 +22,7 @@ letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
 
 lines = {'Ha':[6555, 6575], 'Hb':[4855, 4870], 'Hg':[4320,4370]}
 
-for fitsName in glob.glob('/data2/mrs493/DR1/*.fits'):
+for fitsName in glob.glob('/data2/mrs493/DR1/*.fits')[0:20]:
     
     hdulist = fits.open(fitsName)
     
@@ -50,9 +52,10 @@ for fitsName in glob.glob('/data2/mrs493/DR1/*.fits'):
     start
     '''
     
-    testing = sp.diff(flux[::10])
-    testing2 = (testing==testing and abs(testing)>10)
-#    counts = [abs(testing)]    
+    #testing = sp.diff(flux[::10])
+    #testing2 = (testing==testing and abs(testing)>10)
+#    counts = [abs(testing)]   
+        #to do: look into 'spikeness' 
     
     
     '''
@@ -75,6 +78,18 @@ for fitsName in glob.glob('/data2/mrs493/DR1/*.fits'):
         
         eqWid[line] = wRange*(1-(actualA/theoA))
         
+        '''
+        plt.plot(wavelength[wLower:wUpper], flux[wLower:wUpper])
+        plt.plot([wavelength[wLower],wavelength[wUpper-1]], [flux[wLower], flux[wUpper - 1]])
+        plt.annotate('Equivalent Width = {}'.format(eqWid[line]), xy = (0.05, 0.05), xycoords = 'axes fraction')#, color = 'red')
+        plt.xlabel('Wavelength \ Angstroms')
+        plt.ylabel('Flux')
+        plt.title('{} line'.format(line))
+        '''
+            #for plotting the lines
+            
+        plt.show()
+        
         if not eqWid[line] == eqWid[line]: valid = False
              
     bands = {}
@@ -96,10 +111,10 @@ for fitsName in glob.glob('/data2/mrs493/DR1/*.fits'):
     RI = bands['R'] - bands['I']
         
     if valid:
-        dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
+        pass#dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
 
     hdulist.close()
 
-df = catalog.merge(dr1, on='designation', how='inner')
+#df = catalog.merge(dr1, on='designation', how='inner')
 
-df.to_csv('/data2/mrs493/my_data2.csv')
+#df.to_csv('/data2/mrs493/my_data2.csv')
