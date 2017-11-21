@@ -101,12 +101,13 @@ class Spectrum:
     def plotFlux(self, inset=None):    
         fig, ax1 = plt.subplots(figsize=[5,4])
         ax1.plot(self.wavelength,self.flux)
-        ax1.axvline(4340)
+        ax1.axvline(4471)
         ax1.plot(self.wavelength,self.fluxSmooth)
         ax1.set_xlabel('Wavelength [Angstroms]')
         ax1.set_ylabel('Flux')
         ax1.set_title("Class {}, Designation {}".format(self.CLASS,self.DESIG))
         ax1.set_yscale('log')
+        ax1.set_xlim([4450,4490])
         
         if inset in self.lines:
             ax2 = fig.add_axes([0.25,0.25,0.25,0.25])
@@ -201,9 +202,9 @@ def specLine(wavelengths,Spectrum):
     return equivWidth
     
 #Constructs the Spectra variable from the DR1 data
-spec = Spectra('/data2/cpb405/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
+#spec = Spectra('/data2/mrs493/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
 """
-for i in range(13):
+for i in range(100):
     spec.plotFlux(i)
     #print(spec.specList[i].equivWidth)
 """
