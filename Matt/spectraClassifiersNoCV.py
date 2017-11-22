@@ -22,7 +22,7 @@ df = pd.read_csv(sfile, sep=',')
 
 colour = sp.reshape(df.colour, (-1, 1))
     #reshape the colour to a column vector for use in the algorithm
-    
+    x
 designation = sp.array(df.designation.tolist())
 
 temp = sp.array(df.teff.tolist())

@@ -34,13 +34,13 @@ randomFeature = np.random.normal(0.5,0.2,len(totCounts))
 temps = np.array(df["teff"].tolist())
 desig = np.array(df["designation"].tolist())
 
-features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,HalphaEW,HbetaEW,HgammaEW,randomFeature))
+features = np.column_stack((BV,BR,BI,VR,VI,RI,totCounts,HalphaEW,HbetaEW,HgammaEW))
 
 kf = cross_validation.KFold(n=len(BV), n_folds=5, shuffle=True)
 j = 1
 foldAverage = []
 
-features_train, features_test, temp_train, temp_test = train_test_split(features, temps, test_size=0.5)
+features_train, features_test, temp_train, temp_test, desig_train, desig_test = train_test_split(features, temps, desig, test_size=0.5)
 
 #tuned_params = [{'n_estimators':[1,10,20,40,60,80,100],'max_depth':[1,10,100,1000]}]
 
@@ -85,12 +85,12 @@ ax[1][0].set_ylabel('Residual of Fit')
 ax[1][0].set_title('Residual of Errors')
 
 index = np.argmax(abs(error))
-row_index = df.loc[df['designation']==desig[index]].index[0]
+row_index = df.loc[df['designation']==desig_test[index]].index[0]
 
-finalSpectrum = readFits.Spectrum('/data2/mrs493/DR1/' + df.get_value(index,'filename'))  
+finalSpectrum = readFits.Spectrum('/data2/mrs493/DR1/' + df.get_value(row_index,'filename'))  
 
 ax[1][1].plot(finalSpectrum.wavelength, finalSpectrum.flux)
-ax[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(df.get_value(index,'teff'),finalSpectrum.wavelength,finalSpectrum),'--',c='r',label='True Temp.')
+ax[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(df.get_value(row_index,'teff'),finalSpectrum.wavelength,finalSpectrum),'--',c='r',label='True Temp.')
 ax[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(test_pred[index],finalSpectrum.wavelength,finalSpectrum),'--',c='b',label='Predicted Temp.')
 ax[1][1].set_xlabel('Wavelength / Angstroms')
 ax[1][1].set_ylabel('Flux')

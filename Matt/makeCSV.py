@@ -22,7 +22,7 @@ letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
 
 lines = {'Ha':[6555, 6575], 'Hb':[4855, 4870], 'Hg':[4320,4370]}
 
-for fitsName in glob.glob('/data2/mrs493/DR1/*.fits')[0:20]:
+for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
     
     hdulist = fits.open(fitsName)
     
@@ -111,10 +111,10 @@ for fitsName in glob.glob('/data2/mrs493/DR1/*.fits')[0:20]:
     RI = bands['R'] - bands['I']
         
     if valid:
-        pass#dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
+        dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
 
     hdulist.close()
 
-#df = catalog.merge(dr1, on='designation', how='inner')
+df = catalog.merge(dr1, on='designation', how='inner')
 
-#df.to_csv('/data2/mrs493/my_data2.csv')
+df.to_csv('/data2/mrs493/my_data4.csv')
