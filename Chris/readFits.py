@@ -202,7 +202,7 @@ def specLine(wavelengths,Spectrum):
     return equivWidth
     
 #Constructs the Spectra variable from the DR1 data
-#spec = Spectra('/data2/mrs493/DR1/*.fits','/data2/cpb405/dr1_stellar.csv')
+#spec = Spectra('/data2/cpb405/DR1_3/*.fits','/data2/cpb405/dr1_stellar.csv')
 """
 for i in range(100):
     spec.plotFlux(i)

@@ -87,7 +87,7 @@ ax[1][0].set_title('Residual of Errors')
 index = np.argmax(abs(error))
 row_index = df.loc[df['designation']==desig_test[index]].index[0]
 
-finalSpectrum = readFits.Spectrum('/data2/mrs493/DR1/' + df.get_value(row_index,'filename'))  
+finalSpectrum = readFits.Spectrum('/data2/cpb405/DR1_3/' + df.get_value(row_index,'filename'))  
 
 ax[1][1].plot(finalSpectrum.wavelength, finalSpectrum.flux)
 ax[1][1].plot(finalSpectrum.wavelength,readFits.blackbody(df.get_value(row_index,'teff'),finalSpectrum.wavelength,finalSpectrum),'--',c='r',label='True Temp.')
