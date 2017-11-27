@@ -7,12 +7,11 @@ from astropy.io import fits
 from astropy.convolution import convolve, Box1DKernel
 from scipy.interpolate import interp1d
 
-
 import matplotlib.pyplot as plt
 
 from fits import Spectrum
 
-sfile = '/data2/mrs493/my_data3.csv'
+sfile = '/data2/mrs493/my_data2.csv'
 
 df = pd.read_csv(sfile, sep=',')
 
