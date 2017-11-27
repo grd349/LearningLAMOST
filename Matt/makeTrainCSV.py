@@ -5,24 +5,26 @@ import scipy as sp
 import glob
 from astropy.io import fits
 from astropy.convolution import convolve, Box1DKernel
+from scipy.interpolate import interp1d
+
 
 import matplotlib.pyplot as plt
 
+from fits import Spectrum
+
+dataExample = Spectrum('/data2/cpb405/DR1/spec-55862-B6212_sp06-003.fits')
+
+dataWavelength = dataExample.wavelength
+
 width = 10
 
-sfile = '/data2/cpb405/dr1_stellar.csv'
-
-catalog = pd.read_csv(sfile, sep='|')
-
-catalog.drop_duplicates(subset = 'designation', inplace = True)
-
-dr1 = pd.DataFrame(columns = ['designation', 'totalCounts', 'B', 'V', 'R', 'I', 'BV', 'BR', 'BI', 'VR', 'VI', 'RI', 'Ha', 'Hb', 'Hg', 'filename'])
+SDSS = pd.DataFrame(columns = ['totalCounts', 'B', 'V', 'R', 'I', 'BV', 'BR', 'BI', 'VR', 'VI', 'RI', 'Ha', 'Hb', 'Hg'])
 
 letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
 
 lines = {'Ha':[6555, 6575], 'Hb':[4855, 4870], 'Hg':[4320,4370]}
 
-for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
+for fitsName in glob.glob('/data2/mrs493/SDSS/*.fit'):
     
     hdulist = fits.open(fitsName)
     
@@ -33,6 +35,26 @@ for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
     flux = hdulist[0].data[0]
 
     wavelength = 10**sp.arange(init, init+disp*(len(flux)-0.9), disp)
+
+    '''
+    start conversion to data wavelength scale
+        needed as wavelength range/intervals of SDSS different to LAMOST
+    '''
+    
+    startIndex = sp.searchsorted(dataWavelength,wavelength[0],side="left")
+    endIndex = sp.searchsorted(dataWavelength,wavelength[-1],side="right")
+        #cannot interpolate outside given range, so cut off wavelengths outside
+        
+    plt.plot(wavelength, flux)
+    
+    fluxF = interp1d(wavelength, flux)
+    flux = fluxF(dataWavelength[startIndex:endIndex])
+    
+    wavelength = dataWavelength[startIndex:endIndex]
+    
+    '''
+    end
+    '''
     
     stitchLower = sp.searchsorted(wavelength,5570,side="left")
     stitchUpper = sp.searchsorted(wavelength,5590,side="right")
@@ -47,6 +69,8 @@ for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
     
     totalCounts = sp.nansum(flux)
     #spike = sp.median(sp.diff(flux[::10]))
+    
+    plt.plot(wavelength, smoothFlux)
     
     '''
     start
@@ -70,9 +94,13 @@ for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
         wLower = sp.searchsorted(wavelength, wRange[0], side = 'left')
         wUpper = sp.searchsorted(wavelength, wRange[1], side = 'right')
         
+        if wLower == len(wavelength) or wUpper == 0:
+            valid = False
+            break
+        
         ends = [flux[wLower], flux[wUpper - 1]]
         wRange = wavelength[wUpper-1] - wavelength[wLower]
-    
+        
         actualA = sp.trapz(flux[wLower:wUpper], wavelength[wLower:wUpper])
         theoA = (ends[0] + ends[1])*wRange/2.
         
@@ -87,16 +115,17 @@ for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
         plt.title('{} line'.format(line))
         '''
             #for plotting the lines
-            
-        plt.show()
         
-        if not eqWid[line] == eqWid[line]: valid = False
+        if not eqWid[line] == eqWid[line]:
+            valid = False
              
     bands = {}
     
     for letter in letters:
         lower = sp.searchsorted(wavelength, letters[letter][0], side = 'left')
         upper = sp.searchsorted(wavelength, letters[letter][1], side = 'right')
+        if lower == len(wavelength) or upper == 0:
+            valid = False
         bandFlux = smoothFlux[lower:upper]
         bands[letter] = -2.5*sp.log10(sp.nanmean(bandFlux))
         if bands[letter] == sp.inf or bands[letter] == -sp.inf:
@@ -111,10 +140,11 @@ for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
     RI = bands['R'] - bands['I']
         
     if valid:
-        dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
+        SDSS.loc[len(SDSS)] = [totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg']]
 
     hdulist.close()
+    
+    print valid
+    plt.show()
 
-df = catalog.merge(dr1, on='designation', how='inner')
-
-df.to_csv('/data2/mrs493/my_data3.csv')
+SDSS.to_csv('/data2/mrs493/train.csv')

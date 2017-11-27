@@ -28,12 +28,24 @@ def getFeatures(df):
     return sp.column_stack((BV,BR,BI,VR,VI,RI,totCounts,Ha,Hb,Hg,randomFeature))#,spike,randomFeature))
 
 i = 0
-    
-sfile = '/data2/mrs493/my_data.csv'    ###filename###
+'''    
+sfile = '/data2/mrs493/my_data2.csv'    ###filename###
 
 df = pd.read_csv(sfile, sep=',')
+'''
+#start
 
-train, test = train_test_split(df, test_size=0.2)
+sfile2 = '/data2/mrs493/my_data.csv'    ###filename###
+
+train = pd.read_csv(sfile2, sep=',')
+
+sfile2 = '/data2/mrs493/train.csv'    ###filename###
+
+test = pd.read_csv(sfile2, sep=',')
+
+#end
+
+#train, test = train_test_split(df, test_size=0.2)
 
 X_train = getFeatures(train)
 X_test = getFeatures(test)
@@ -48,6 +60,9 @@ clf = clf.fit(X_train, y_train)
 
 final = clf.predict(X_test)
     #Use the model to predict the temperatures of the test set
+
+print i
+i += 1
         
 fig, ax = plt.subplots(2,2)
 
@@ -82,12 +97,20 @@ ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy = (0.05, 0.90), xycoords = 'ax
 """
 look into residplot - appears residual not propotrional to error (see SGD plot)
 """
-  
+
+print i
+i += 1
+    
 test_index = sp.argmax(abs(error))
 
-spectrum = Spectrum('/data2/cpb405/DR1/' + test.filename.tolist()[test_index])    ###filename###
+print i
+i += 1
+
+spectrum = Spectrum('/data2/cpb405/DR1_3/' + test.filename.tolist()[test_index])    ###filename###
 spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index])
 
+print i
+i += 1
 
 ax[1][1].set_xlabel('Wavelength \ Angstroms')
 ax[1][1].set_ylabel('Flux')
