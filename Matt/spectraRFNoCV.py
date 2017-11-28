@@ -29,7 +29,7 @@ def getFeatures(df):
 
 i = 0
     
-sfile = '/data2/mrs493/my_data.csv'    ###filename###
+sfile = '/data2/mrs493/my_data3.csv'    ###filename###
 
 df = pd.read_csv(sfile, sep=',')
 
@@ -85,7 +85,7 @@ look into residplot - appears residual not propotrional to error (see SGD plot)
   
 test_index = sp.argmax(abs(error))
 
-spectrum = Spectrum('/data2/cpb405/DR1/' + test.filename.tolist()[test_index])    ###filename###
+spectrum = Spectrum('/data2/mrs493/DR1_3/' + test.filename.tolist()[test_index])    ###filename###
 spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index])
 
 

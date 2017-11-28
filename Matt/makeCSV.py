@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import gc
+
 import pandas as pd
 import scipy as sp
 import glob
@@ -114,6 +116,8 @@ for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
         dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
 
     hdulist.close()
+    
+    gc.collect()
 
 df = catalog.merge(dr1, on='designation', how='inner')
 
