@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout, QSh
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
 
 from readFitsSlim import Spectra
 
@@ -24,7 +24,7 @@ class Window(QDialog):
         
         self.classification = []
         self.spec = Spectra('/data2/cpb405/DR1/*.fits')
-        self.spec.specList = self.spec.specList[:5]
+        self.spec.specList = self.spec.specList[:20]
         self.index = 0
      
         self.figure = plt.figure()
@@ -71,7 +71,11 @@ class Window(QDialog):
             self.index += 1
         else:
             print(self.classification)
-            np.savetxt("spectralTrainingSet.csv", self.classification, delimiter=",", fmt="%s")
+            df = pd.DataFrame(columns=['designation','class'])
+            for i in range(len(self.classification)):
+                df.loc[len(df)] = [self.spec.desig[i],self.classification[i]]
+        
+            df.to_csv('spectralTrainingSet.csv')
             self.close()
         # refresh canvas
         self.canvas.draw()
