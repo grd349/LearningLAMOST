@@ -50,14 +50,17 @@ class Spectrum():
         ax.plot(self.wavelength, self.flux)
         plt.show()
 
+    def __call__(self):
+        self.read_fits_file()
+        self.process_fits_file()
+        return self.get_features()
+        
 if __name__ == "__main__":
     sdir = '../SampleFits/'
     files = glob.glob(sdir + '*.fits')
     for idx, f in enumerate(tqdm(files)):
         spec = Spectrum(f)
-        spec.read_fits_file()
-        spec.process_fits_file()
-        df = spec.get_features()
+        df = spec()
         if idx == 0:
             df_main = df.copy()
         else:
