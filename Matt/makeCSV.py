@@ -121,4 +121,4 @@ for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
 
 df = catalog.merge(dr1, on='designation', how='inner')
 
-df.to_csv('/data2/mrs493/my_data2.csv')
+df.to_csv('/Data/my_data2.csv')

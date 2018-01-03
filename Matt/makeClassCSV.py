@@ -12,19 +12,13 @@ import matplotlib.pyplot as plt
 
 width = 10
 
-sfile = '/data2/cpb405/dr1_stellar.csv'
-
-catalog = pd.read_csv(sfile, sep='|')
-
-catalog.drop_duplicates(subset = 'designation', inplace = True)
-
 dr1 = pd.DataFrame(columns = ['designation', 'totalCounts', 'B', 'V', 'R', 'I', 'Ha', 'Hb', 'Hg', 'CLASS', 'filename'])
 
 letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
 
 lines = {'Ha':[6555, 6575], 'Hb':[4855, 4870], 'Hg':[4320,4370]}
 
-for fitsName in glob.glob('/data2/cpb405/DR1/*.fits'):
+for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
     
     hdulist = fits.open(fitsName)
     
@@ -95,6 +89,7 @@ for fitsName in glob.glob('/data2/cpb405/DR1/*.fits'):
                         
     if valid:
         dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME']]
+	if not hdulist[0].header['CLASS'] == 'STAR': print hdulist[0].header['CLASS']
 
     hdulist.close()
     
