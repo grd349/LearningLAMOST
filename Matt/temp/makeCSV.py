@@ -18,7 +18,7 @@ catalog = pd.read_csv(sfile, sep='|')
 
 catalog.drop_duplicates(subset = 'designation', inplace = True)
 
-dr1 = pd.DataFrame(columns = ['designation', 'totalCounts', 'B', 'V', 'R', 'I', 'BV', 'BR', 'BI', 'VR', 'VI', 'RI', 'Ha', 'Hb', 'Hg', 'filename'])
+dr1 = pd.DataFrame(columns = ['designation', 'totalCounts', 'B', 'V', 'R', 'I', 'Ha', 'Hb', 'Hg', 'filename'])
 
 letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
 
@@ -105,15 +105,7 @@ for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
             bands[letter] = sp.nan
             valid = False
                 
-    BV = bands['B'] - bands['V']
-    BR = bands['B'] - bands['R']
-    BI = bands['B'] - bands['I']
-    VR = bands['V'] - bands['R']
-    VI = bands['V'] - bands['I']
-    RI = bands['R'] - bands['I']
-        
-    if valid:
-        dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], BV, BR, BI, VR, VI, RI, eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
+    dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['FILENAME']]
 
     hdulist.close()
     
@@ -121,4 +113,4 @@ for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
 
 df = catalog.merge(dr1, on='designation', how='inner')
 
-df.to_csv('/Data/my_data2.csv')
+df.to_csv('temp2.csv')
