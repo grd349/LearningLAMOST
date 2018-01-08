@@ -24,7 +24,7 @@ letters = {"B":[3980,4920], "V":[5070,5950],"R":[5890,7270],"I":[7310,8810]}
 
 lines = {'Ha':[6555, 6575], 'Hb':[4855, 4870], 'Hg':[4320,4370]}
 
-for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
+for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
     
     hdulist = fits.open(fitsName)
     
@@ -113,4 +113,4 @@ for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
 
 df = catalog.merge(dr1, on='designation', how='inner')
 
-df.to_csv('temp2.csv')
+df.to_csv('temp3.csv')
