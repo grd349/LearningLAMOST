@@ -30,22 +30,20 @@ sfile = 'temp2.csv'    ###filename###
 
 df = pd.read_csv(sfile, sep=',')
 
-#
 imputer = Imputer()
-#
 
 train, test = train_test_split(df, test_size=0.2)
 
 X_train = getFeatures(train)
 X_test = getFeatures(test)
 
-#
 X_train = imputer.fit_transform(X_train)
 X_test = imputer.transform(X_test)
-#
 
 y_train = train.teff.tolist()
 y_test = test.teff.tolist()
+
+ends = [sp.amin(y_test), sp.amax(y_test)]
 
 clf = RandomForestRegressor(n_estimators=80,max_depth=10)
 
@@ -60,6 +58,7 @@ fig, ax = plt.subplots(2,2)
 fig.suptitle('Random Forest Regressor')
     
 ax[0][0].scatter(y_test, final)
+ax[0][0].plot(ends, ends, ls = ':', color = 'red')
 ax[0][0].set_xlabel('Actual temperature \ K')
 ax[0][0].set_ylabel('Predicted temperature \ K')
 ax[0][0].set_title('Actual vs. Predicted temperature')
@@ -92,7 +91,7 @@ look into residplot - appears residual not propotrional to error (see SGD plot)
 test_index = sp.argmax(abs(error))
 
 spectrum = Spectrum('/data2/mrs493/DR1_3/' + test.filename.tolist()[test_index])    ###filename###
-spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index])
+spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index], label = 'outlier')
 
 
 ax[1][1].set_xlabel('Wavelength \ Angstroms')
@@ -101,7 +100,7 @@ ax[1][1].set_title('Spectra and model blackbody curve\nfor greatest outlier')
 ax[1][1].legend()
     
 plt.tight_layout()
-
+plt.savefig('tempModel.pdf')
 plt.show()
 
 ft = ['BV', 'BR', 'BI', 'VR', 'VI', 'RI', 'totC', 'Ha', 'Hb', 'Hg', 'rand']

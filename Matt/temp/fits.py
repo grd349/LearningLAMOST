@@ -65,11 +65,11 @@ class Spectrum:
         self.VI = self.bands['V'] - self.bands['I']
         self.RI = self.bands['R'] - self.bands['I']
         
-    def plotFlux(self, ax = None, Tpred = None, Teff = None, element = None):
+    def plotFlux(self, ax = None, Tpred = None, Teff = None, element = None, colour = '#1f77b4', label = None):
         #method to plot the spectra and scaled blackbody curve, and also zoom in on element lines
         if not ax: fig, ax = plt.subplots()
         
-        ax.plot(self.wavelength,self.flux)
+        ax.plot(self.wavelength,self.flux, color = colour, label = label)
         
         if Tpred:
             h = 6.63e-34

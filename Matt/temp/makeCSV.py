@@ -111,6 +111,8 @@ for fitsName in glob.glob('/data2/mrs493/DR1_3/*.fits'):
     
     gc.collect()
 
+
+
 df = catalog.merge(dr1, on='designation', how='inner')
 
 df.to_csv('temp3.csv')

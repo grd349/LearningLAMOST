@@ -9,46 +9,52 @@ from astropy import stats
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
-
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import Imputer
+from sklearn.ensemble import RandomForestClassifier
 
 def getFeatures(df):
-    BV = sp.array(df["BV"].tolist())
-    BR = sp.array(df["BR"].tolist())
-    BI = sp.array(df["BI"].tolist())
-    VR = sp.array(df["VR"].tolist())
-    VI = sp.array(df["VI"].tolist())
-    RI = sp.array(df["RI"].tolist())
+    B = sp.array(df["B"].tolist())
+    R = sp.array(df["R"].tolist())
+    I = sp.array(df["I"].tolist())
+    V = sp.array(df["V"].tolist())
     Ha = sp.array(df["Ha"].tolist())
     Hb = sp.array(df["Hb"].tolist())
     Hg = sp.array(df["Hg"].tolist())
     totCounts = sp.array(df["totalCounts"].tolist())
-    #spike = sp.array(df["spike"].tolist())
     randomFeature = sp.random.normal(0.5,0.2,len(totCounts))
-    return sp.column_stack((BV,BR,BI,VR,VI,RI,totCounts,Ha,Hb,Hg,randomFeature))#,spike,randomFeature))
+    return sp.column_stack((B-V,B-R,B-I,V-R,V-I,R-I,totCounts,Ha,Hb,Hg,randomFeature))
 
-i = 0
+#i = 0
     
-sfile = '/data2/mrs493/my_data3.csv'    ###filename###
+sfile = 'classes2.csv'    ###filename###
 
 df = pd.read_csv(sfile, sep=',')
+
+#
+imputer = Imputer()
+#
 
 train, test = train_test_split(df, test_size=0.2)
 
 X_train = getFeatures(train)
 X_test = getFeatures(test)
 
-y_train = train.teff.tolist()
-y_test = test.teff.tolist()
+#
+X_train = imputer.fit_transform(X_train)
+X_test = imputer.transform(X_test)
+#
 
-clf = RandomForestRegressor(n_estimators=80,max_depth=10)
+y_train = train.CLASS.tolist()
+y_test = test.CLASS.tolist()
+
+clf = RandomForestClassifier(n_estimators=80,max_depth=10)
 
 clf = clf.fit(X_train, y_train)
     #fit the model the the current training set
 
 final = clf.predict(X_test)
     #Use the model to predict the temperatures of the test set
-        
+'''        
 fig, ax = plt.subplots(2,2)
 
 fig.suptitle('Random Forest Regressor')
@@ -97,6 +103,11 @@ ax[1][1].legend()
 plt.tight_layout()
 
 plt.show()
+'''
+
+print final
+
+print float(sp.sum(final == y_test))/len(y_test)
 
 ft = ['BV', 'BR', 'BI', 'VR', 'VI', 'RI', 'totC', 'Ha', 'Hb', 'Hg', 'rand']
 imp = clf.feature_importances_
@@ -105,6 +116,13 @@ print 'Feature\tImportance\t\tComp to rand'
 
 for f,i in zip(ft, imp):
     print'{}  \t{}   \t{}'.format(f, i, i-imp[-1])
+
+'''
+acc to high, probs due to labeling all as stars
+also, feature importance ~equal, again likely due to all stars
+look into train_test_split stratify option
+want to try and get equal split of classes in train set
+'''
     
 '''
 add more classifiers
@@ -113,4 +131,3 @@ add other features i.e. change band widths, move position, use single band etc.
 find feature importance
 compare cross-validatted to non-cross-validated models
 '''
-    

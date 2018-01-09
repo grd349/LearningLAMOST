@@ -87,12 +87,10 @@ for fitsName in glob.glob('/data2/mrs493/DR1_2/*.fits'):
             bands[letter] = sp.nan
             valid = False
                         
-    if valid:
-        dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME']]
-	if not hdulist[0].header['CLASS'] == 'STAR': print hdulist[0].header['CLASS']
+    dr1.loc[len(dr1)] = [hdulist[0].header['DESIG'][7:], totalCounts, bands['B'], bands['V'], bands['R'], bands['I'], eqWid['Ha'], eqWid['Hb'], eqWid['Hg'], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME']]
 
     hdulist.close()
     
     gc.collect()
 
-dr1.to_csv('/data2/mrs493/classes.csv')
+dr1.to_csv('classes2.csv')
