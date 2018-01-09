@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+
+for i in 10; do
+    ./readfits.py i
+done

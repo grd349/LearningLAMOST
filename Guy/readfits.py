@@ -6,6 +6,7 @@ import glob
 from astropy.io import fits
 import pandas as pd
 from tqdm import tqdm
+import sys
 
 class Spectrum():
     ''' A class to read in a process a fits file contains a LAMOST spectrum'''
@@ -58,11 +59,16 @@ class Spectrum():
 if __name__ == "__main__":
     sdir = '../SampleFits/'
     files = glob.glob(sdir + '*.fits')
-    for idx, f in enumerate(tqdm(files)):
+    if len(sys.argv) != 2:
+        print('Usage : ./readfits.py index')
+    index = int(sys.argv[1])
+    batch = 10
+    print("Processing file numbers {} {}".format(index*batch, (index+1)*batch))
+    for idx, f in enumerate(tqdm(files[index*batch:(index+1)*batch])):
         spec = Spectrum(f)
         df = spec()
         if idx == 0:
             df_main = df.copy()
         else:
             df_main = pd.concat([df_main, df])
-    print(df_main)
+    df_main.to_csv('Output/output_' + str(index) + '.csv')
