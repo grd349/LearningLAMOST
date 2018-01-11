@@ -2,19 +2,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import readFits
 
 from astropy.stats import mad_std
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
-from sklearn import cross_validation
 
+def read_dataframe():
+	sfile = 'feature_dataframe'
+	df = pd.read_csv(sfile, sep=',')
+	features = df.as_matrix(columns=df.columns[1:9])
+	print(features)
+	"""
+	for col in df.columns:
+		if col[0] == 'c' or col[0] == 'l':
+			features = np.column_stack(features,df[col])
+	print(features)
+		#print(df[col])
+	"""
 
-#Reads in dataframe
-sfile = 'spectra_dataframe.csv'
-df = pd.read_csv(sfile, sep=',')
-
+read_dataframe()
+"""
 #Reads in temperature and features from dataframe
 BV = np.array(df["BV"].tolist())
 BR = np.array(df["BR"].tolist())
@@ -104,3 +112,4 @@ ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy=(0.05, 0.90), xycoords='axes f
 
 plt.tight_layout()
 plt.show()
+"""
