@@ -72,8 +72,8 @@ MAD = stats.mad_std(error)
 
 sns.kdeplot(error, ax=ax[0][1], shade=True)
 ax[0][1].set_xlabel('Absolute Error')
-ax[0][1].set_ylabel('Fraction of Points with\nGiven Error')
-ax[0][1].set_title('KDE of Absolute Error\non Temperature Prediction')
+ax[0][1].set_ylabel('Fraction of Points with Error')
+ax[0][1].set_title('KDE of Absolute Error')
     #plot the univariant kernel density estimatorplt.axvline(letters[letter][0])
     
 sns.residplot(sp.array(y_test), final, lowess = True, ax = ax[1][0], line_kws={'color': 'red'})
@@ -91,12 +91,12 @@ look into residplot - appears residual not propotrional to error (see SGD plot)
 test_index = sp.argmax(abs(error))
 
 spectrum = Spectrum('/data2/mrs493/DR1_3/' + test.filename.tolist()[test_index])    ###filename###
-spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index], label = 'outlier')
+spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index], label = 'Outlier')
 
 
 ax[1][1].set_xlabel('Wavelength \ Angstroms')
 ax[1][1].set_ylabel('Flux')
-ax[1][1].set_title('Spectra and model blackbody curve\nfor greatest outlier')
+ax[1][1].set_title('Spectra of Greatest Outlier')
 ax[1][1].legend()
     
 plt.tight_layout()
