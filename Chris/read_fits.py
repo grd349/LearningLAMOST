@@ -71,21 +71,24 @@ class Spectrum():
 		return self.get_features()
         
 if __name__ == "__main__":
-    sdir = '../SampleFits/'
+    sdir = '/data2/mrs493/DR1_3/'
     files = glob.glob(sdir + '*.fits')
     fdict = {'cAll':[0,9000], 'cB':[3980, 4920], 'cV':[5070,5950], 'cR':[5890,7270], 'cI':[7310,8810],
              'lHa':[6555,6575], 'lHb':[4855,4870], 'lHg':[4320,4370]}
     if len(sys.argv) != 2:
         print('Usage : ./read_fits.py index')
     index = int(sys.argv[1])
-    batch = 10
+    batch = 100
     print("Processing file numbers {} {}".format(index*batch, (index+1)*batch))
     for idx, f in enumerate(files[index*batch:(index+1)*batch]):
-        spec = Spectrum(f,fdict)
-        df = spec()
-        if idx == 0:
-            df_main = df.copy()
-        else:
-            df_main = pd.concat([df_main, df])
+        try:
+            spec = Spectrum(f,fdict)
+            df = spec()
+            if idx == 0:
+                df_main = df.copy()
+            else:
+                df_main = pd.concat([df_main, df])
+        except:
+            print("Failed for file : ", f)
     df_main.to_csv('Output/output_' + str(index) + '.csv')
 
