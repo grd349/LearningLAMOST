@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import glob
 from astropy.io import fits
 import pandas as pd
+import sys
 
 class Spectrum():
 	''' A class to read in and process a fits file containing a LAMOST spectrum'''
@@ -74,17 +75,17 @@ if __name__ == "__main__":
     files = glob.glob(sdir + '*.fits')
     fdict = {'cAll':[0,9000], 'cB':[3980, 4920], 'cV':[5070,5950], 'cR':[5890,7270], 'cI':[7310,8810],
              'lHa':[6555,6575], 'lHb':[4855,4870], 'lHg':[4320,4370]}
-    i = 0
-    for idx, f in enumerate(files):
+    if len(sys.argv) != 2:
+        print('Usage : ./read_fits.py index')
+    index = int(sys.argv[1])
+    batch = 10
+    print("Processing file numbers {} {}".format(index*batch, (index+1)*batch))
+    for idx, f in enumerate(files[index*batch:(index+1)*batch]):
         spec = Spectrum(f,fdict)
         df = spec()
         if idx == 0:
             df_main = df.copy()
         else:
             df_main = pd.concat([df_main, df])
-        i += 1
-        if i%100 == 0:
-            print(i)
-    df_main.to_csv('test_dataframe')
-    print(df_main)
+    df_main.to_csv('Output/output_' + str(index) + '.csv')
 
