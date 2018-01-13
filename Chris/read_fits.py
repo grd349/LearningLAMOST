@@ -15,6 +15,8 @@ class Spectrum():
 		keys = [n[0] for n in fdict.items()]
 		keys = keys + ['FILENAME', 'designation', 'CLASS']
 		self.df = pd.DataFrame(columns=keys)
+		self.read_fits_file()
+		self.process_fits_file()
         
 	def read_fits_file(self):
 		''' Read in and store the fits file data '''
@@ -40,8 +42,9 @@ class Spectrum():
 		for feat, lam in self.fdict.items():
 			sel = np.where(np.logical_and(self.wavelength > lam[0], self.wavelength < lam[1]))
 			if feat[0]=='c': 
-				feats[i] = np.nanmean(self.flux[sel])
-				if feats[i] != feats[i]:
+				feats[i] = -2.5*np.log10(np.nanmean(self.flux[sel]))
+				if feats[i] != feats[i] or feats[i] == np.inf or feats[i] == (-1)*np.inf:
+					print(feats[i])                   
 					feats[i] = 0
 				i += 1
 				if verbose:
@@ -66,8 +69,6 @@ class Spectrum():
 
 	def __call__(self):
 		''' Calls helper functions in turn when instance of class is made '''
-		self.read_fits_file()
-		self.process_fits_file()
 		return self.get_features()
         
 if __name__ == "__main__":
@@ -90,5 +91,5 @@ if __name__ == "__main__":
                 df_main = pd.concat([df_main, df])
         except:
             print("Failed for file : ", f)
-    df_main.to_csv('Output/output_' + str(index) + '.csv')
+    df_main.to_csv('TempCSVs/output_' + str(index) + '.csv')
 
