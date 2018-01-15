@@ -2,19 +2,14 @@
 
 import pandas as pd
 import scipy as sp
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 from astropy.io import fits
-from astropy.convolution import convolve, Box1DKernel
+#from astropy.convolution import convolve, Box1DKernel
 
-import gc
+#import gc
 import glob
 import sys
-
-
-#sfile = '/data2/cpb405/dr1_stellar.csv'
-#catalog = pd.read_csv(sfile, sep='|')
-#catalog.drop_duplicates(subset = 'designation', inplace = True)
 
 if len(sys.argv) != 2:
     print('Usage : ./readfits.py index')
@@ -22,20 +17,20 @@ index = int(sys.argv[1])
 batch = 100
 print("Processing file numbers {} {}".format(index*batch, (index+1)*batch))
 
-files = glob.glob('/data2/mrs493/DR1_3/*.fits')[index*batch:(index+1)*batch]
+files = glob.glob('/data2/mrs493/DR1_3/*.fits')
 
 #width = 10
 
 fBands = {"cTotal":[0, 9000], "cB":[3980,4920], "cV":[5070,5950],"cR":[5890,7270],"cI":[7310,8810], 'lHa':[6555, 6575], 'lHb':[4855, 4870], 'lHg':[4320,4370]}
 
-keys = [feat[0] for feat in fBands.items()] + ['designation', 'CLASS', 'filename']
+keys = ['designation', 'CLASS', 'filename'] + [feat[0] for feat in fBands.items()]
 
-dr1 = pd.DataFrame(columns = keys, index = sp.arange(0,len(files)))
+errors = sp.array([])
 
-for idx, fitsName in enumerate(files):
+for idx, fitsName in enumerate(files[index*batch:(index+1)*batch]):
     
     hdulist = fits.open(fitsName)
-            
+
     init = hdulist[0].header['COEFF0']
     disp = hdulist[0].header['COEFF1']
     flux = hdulist[0].data[0]
@@ -45,7 +40,7 @@ for idx, fitsName in enumerate(files):
     stitchLower = sp.searchsorted(wavelength,5570,side="left")
     stitchUpper = sp.searchsorted(wavelength,5590,side="right")
     flux[stitchLower:stitchUpper] = sp.nan
-        
+    
     flux[flux<0] = sp.nan
         
     ##smoothFlux = convolve(flux,Box1DKernel(width))[5*width:-5*width] 
@@ -64,10 +59,10 @@ for idx, fitsName in enumerate(files):
     '''
     end
     '''
-
+    
     values = sp.zeros(len(fBands))
     i = 0
-   
+    
     for feat in fBands:
         wRange = fBands[feat]
         wLower = sp.searchsorted(wavelength, wRange[0], side = 'left')
@@ -84,20 +79,23 @@ for idx, fitsName in enumerate(files):
    
         elif feat[0]=='c':
             bandFlux = flux[wLower:wUpper]
-            values[i] = sp.nanmean(bandFlux)
+            values[i] = -2.5*sp.log10(sp.nanmean(bandFlux))
 
-        if values[i] != values[i]:
-            values[i] = 0 #need to think of better fix
+        if values[i] != values[i] or abs(values[i]) == sp.inf:
+                values[i] = 0 #need to think of better fix
         i += 1
 
-    dr1.loc[idx] = [values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME']] #upgrade to using python 3 and use values* instead of individual indexing
+    df = pd.DataFrame(columns=keys)
+
+    df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7]] #upgrade to using python 3 and use values* instead of individual indexing
+
+    if idx == 0:
+        dr1 = df.copy()
+    else:
+        dfr1 = pd.concat([dr1, df])
 
     hdulist.close()
+    
+    #gc.collect()
 
-    gc.collect()
-
-#df = catalog.merge(dr1, on='designation', how='inner')
-#df.to_csv('/data2/mrs493/temp' + str(index) + '.csv')
-
-dr1.to_csv('files/temp' + str(index) + '.csv')
-
+dr1.to_csv('CSVs/spectra' + str(index) + '.csv', index = False)

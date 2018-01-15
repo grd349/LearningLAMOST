@@ -16,12 +16,7 @@ class Spectrum:
             #open the .fits file to allow for data access
         self.flux = hdulist[0].data[0]  #flux counts of the spectra
         self.date = hdulist[0].header['DATE']   #date the observation was made
-        self.SPID = hdulist[0].header['SPID']   #spectral ID (all = 6 that we've seen)
-        self.SNR_U = hdulist[0].header['SN_U']  #signal to noise ration (SNR) in U band
-        self.SNR_G = hdulist[0].header['SN_G']  #SNR in G band
-        self.SNR_R = hdulist[0].header['SN_R']  #SNR in R band
-        self.SNR_I = hdulist[0].header['SN_I']  #SNR in I band
-        self.SNR_Z = hdulist[0].header['SN_Z']  #SNR in Z band
+
         self.CLASS = hdulist[0].header['CLASS'] #object LAMOST classification
         
         self.smoothFlux = convolve(self.flux,Box1DKernel(width))[5*width:-5*width]
