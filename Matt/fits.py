@@ -60,7 +60,7 @@ class Spectrum:
         self.VI = self.bands['V'] - self.bands['I']
         self.RI = self.bands['R'] - self.bands['I']
         
-    def plotFlux(self, ax = None, Tpred = None, Teff = None, element = None, colour = '#1f77b4', label = None):
+    def plotFlux(self, ax = None, Tpred = None, Teff = None, element = None, colour = '#1f77b4', label = None, log = True):
         #method to plot the spectra and scaled blackbody curve, and also zoom in on element lines
         if not ax: fig, ax = plt.subplots()
         
@@ -79,7 +79,7 @@ class Spectrum:
             self.bbFlux = fudge*E
                 #the normalised blackbody curve
             
-            ax.plot(self.wavelength,self.bbFlux, ls = '--', label = 'Predicted')
+            ax.plot(self.wavelength,self.bbFlux, ls = '--', label = 'Predicted', color = 'r')
                 #plot the flux and blackbody curve against wavelength
         
         if Teff:
@@ -95,10 +95,10 @@ class Spectrum:
             self.bbFlux = fudge*E
                 #the normalised blackbody curve
             
-            ax.plot(self.wavelength,self.bbFlux, ls = ':', label = 'Effective')
+            ax.plot(self.wavelength,self.bbFlux, ls = ':', label = 'Effective', color = 'g')
                 #plot the flux and blackbody curve against wavelength
 
-        ax.set_yscale('log')
+        if log: ax.set_yscale('log')
 
         if element in self.lines:
 		#plot inset plot for selected element
