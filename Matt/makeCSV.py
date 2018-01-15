@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#see how useful smoothed differences are
+
 import pandas as pd
 import scipy as sp
 #import matplotlib.pyplot as plt
@@ -12,15 +14,15 @@ import glob
 
 files = glob.glob('/data2/mrs493/DR1_2/*.fits')
 
-fBands = {'cTotal':[0,9000], 'cB':[3980,4920], 'cV':[5070,5950],'cR':[5890,7270],'cI':[7310,8810], 'lHa':[6555, 6575], 'lHb':[4855, 4870], 'lHg':[4320,4370]}
+fBands = {'cB':[3980,4920], 'cV':[5070,5950],'cR':[5890,7270],'cI':[7310,8810], 'lHa':[6555, 6575], 'lHb':[4855, 4870], 'lHg':[4320,4370]}
 
-keys = ['designation', 'CLASS', 'filename'] + [feat[0] for feat in fBands.items()]
+keys = ['designation', 'CLASS', 'filename', 'total', 'd1', 'd2', 'd3'] + [feat[0] for feat in fBands.items()]
 
 errors = pd.DataFrame(columns = ['file'])
 
 dr1 = pd.DataFrame(columns=keys)
 
-for idx, fitsName in enumerate(files[0:100]):
+for idx, fitsName in enumerate(files):
     
     if idx%100 == 0:
         print idx
@@ -37,7 +39,7 @@ for idx, fitsName in enumerate(files[0:100]):
         stitchUpper = sp.searchsorted(wavelength,5590,side='right')
         flux[stitchLower:stitchUpper] = sp.nan
         
-        ##flux[flux<0] = sp.nan
+        ##
         '''re-add'''
             
         
@@ -51,6 +53,10 @@ for idx, fitsName in enumerate(files[0:100]):
         
         smth = convolve(flux,Box1DKernel(wid))[buff*width:-buff*width]
         smoothFlux = convolve(flux,Box1DKernel(width))[buff*width:-buff*width]
+        
+        flux[flux<0] = sp.nan
+        smth[smth<0] = sp.nan
+        smoothFlux[smoothFlux<0] = sp.nan
         
         total = sp.nanmean(flux)
         
@@ -72,7 +78,6 @@ for idx, fitsName in enumerate(files[0:100]):
         '''
         end
         '''
-        
         
         values = sp.zeros(len(fBands))
         i = 0
@@ -101,7 +106,7 @@ for idx, fitsName in enumerate(files[0:100]):
             i += 1
     
         df = pd.DataFrame(columns=keys)
-        df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7]] #upgrade to using python 3 and use values* instead of individual indexing
+        df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], total, diff1, diff2, diff3, values[0], values[1], values[2], values[3], values[4], values[5], values[6]] #upgrade to using python 3 and use values* instead of individual indexing
         dr1 = pd.concat([dr1, df])
 
     except:
@@ -112,8 +117,6 @@ for idx, fitsName in enumerate(files[0:100]):
     hdulist.close()
     gc.collect()
 
-print dr1
+dr1.to_csv('spectra.csv', index = False)
 
-#dr1.to_csv('spectra.csv', index = False)
-
-#errors.to_csv('errors.csv', index = False)
+errors.to_csv('errors.csv', index = False)
