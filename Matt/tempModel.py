@@ -9,7 +9,7 @@ from astropy import stats
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import Imputer
+from sklearn.preprocessing import Imputer, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 
@@ -17,7 +17,7 @@ cfile = '/data2/cpb405/dr1_stellar.csv'
 catalog = pd.read_csv(cfile, sep='|')
 catalog.drop_duplicates(subset = 'designation', inplace = True)
     
-sfile = 'spectra.csv'    ###filename###
+sfile = 'spectra3.csv'    ###filename###
 
 spec = pd.read_csv(sfile, sep=',')
 
@@ -26,16 +26,25 @@ df = catalog.merge(spec, on='designation', how='inner')
 #
 features = sp.array(df.columns[39:])
 colours = features[sp.array([feat[0]=='c' for feat in features])]
+lines = features[sp.array([feat[0]=='l' for feat in features])]
+
+imputer = Imputer(missing_values = 0)
+df[features] = imputer.fit_transform(df[features])
 
 for idx in range(len(colours)-1):
     for j in sp.arange(idx+1, len(colours)):
-        df[colours[idx] + '-' + colours[j]] = df.loc[:,colours[idx]] - df.loc[:,colours[j]]
-        
+        df[colours[idx][1:] + '-' + colours[j][1:]] = df.loc[:,colours[idx]] - df.loc[:,colours[j]]
+
+for idx in range(len(lines)-1):
+    for j in sp.arange(idx+1, len(lines)):
+        df[lines[idx][1:] + '/' + lines[j][1:]] = df.loc[:,lines[idx]]/df.loc[:,lines[j]]
+
 features = sp.array(df.columns[39:])
 
+scaler = StandardScaler()
+df[features] = scaler.fit_transform(df[features])
+
 #
-imputer = Imputer(missing_values = 0)
-df[features] = imputer.fit_transform(df[features])
 
 train, test = train_test_split(df, test_size=0.2)
 
@@ -48,13 +57,14 @@ y_test = test['teff'].tolist()
 ends = [sp.amin(y_test), sp.amax(y_test)]
 
 #
-parameter_grid = [{'n_estimators':[1,10,20,40,60,80,100],'max_depth':[1,10,100,1000]}]
+parameter_grid = [{'n_estimators':[1,10,20,40,60,80,100],'max_depth':[1,10,100,1000],'max_features':[3,5,8,10]}]#,len(features)]}]
 regr = GridSearchCV(RandomForestRegressor(), parameter_grid, cv=5)
 regr.fit(df[features], df.teff.tolist())
-print regr.best_params_
+hyp = regr.best_params_
+print(hyp)
 #
 
-clf = RandomForestRegressor(n_estimators=regr.best_params_['n_estimators'],max_depth=regr.best_params_['max_depth'])
+clf = RandomForestRegressor(n_estimators=hyp['n_estimators'],max_depth=hyp['max_depth'],max_features = hyp['max_features'])
 #clf = RandomForestRegressor()
 
 clf = clf.fit(X_train, y_train)
@@ -98,9 +108,16 @@ ax[1][0].annotate('MAD = {0:.2f}'.format(MAD), xy = (0.05, 0.90), xycoords = 'ax
     #write the MAD in the plot
 '''
 
-imp = [[x,y] for x,y in sorted(zip(clf.feature_importances_, features), reverse = True)]
+fea = ['']*len(features)
 
-bp = sns.barplot([i[1] for i in imp], [i[0]  for i in imp], ax = ax[1][0])
+for f in range(len(features)):
+    if features[f][0] == 'c' or features[f][0] == 'l':
+        fea[f] = features[f][1:]
+    else: fea[f] = features[f]
+
+imp = [[x,y] for x,y in sorted(zip(clf.feature_importances_, fea), reverse = True)]
+
+bp = sns.barplot([i[1] for i in imp][:hyp['max_features']], [i[0]  for i in imp][:hyp['max_features']], ax = ax[1][0])
 ax[1][0].set_xlabel('Features')
 ax[1][0].set_ylabel('% Importance')
 ax[1][0].set_title('Feature Importance')
