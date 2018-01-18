@@ -40,7 +40,7 @@ class Spectrum():
         feats = np.zeros(len(self.fdict))
         i = 0
         for feat, lam in self.fdict.items():
-            sel = np.where(np.logical_and(self.wavelength > lam[0], self.wavelength < lam[1]))
+            sel = np.where(np.logical_and(self.wavelength > lam[0], self.wavelength < lam[1]))[0]
             if feat[0]=='c': 
                 feats[i] = -2.5*np.log10(np.nanmean(self.flux[sel]))
                 if feats[i] != feats[i] or feats[i] == np.inf or feats[i] == (-1)*np.inf:
@@ -51,8 +51,11 @@ class Spectrum():
                     print('Feature ' + feat + ' : ', feats[i])
             elif feat[0]=='l':
                 spec_line_width = self.wavelength[sel][-1]-self.wavelength[sel][0]
-                wSel = np.concatenate((self.wavelength[sel[0][0]-20:sel[0][0]],self.wavelength[sel[0][-1]:sel[0][-1]+20]))
-                fSel = np.concatenate((self.flux[sel[0][0]-20:sel[0][0]],self.flux[sel[0][-1]:sel[0][-1]+20]))
+                wSel = np.concatenate((self.wavelength[sel[0]-20:sel[0]],self.wavelength[sel[-1]:sel[-1]+20]))
+                fSel = np.concatenate((self.flux[sel[0]-20:sel[0]],self.flux[sel[-1]:sel[-1]+20]))                
+                check_nan = np.logical_not(np.isnan(fSel))
+                fSel = fSel[check_nan]
+                wSel = wSel[check_nan]              
                 line = np.polyfit(wSel,fSel,1) 
                 spec_line_area = np.trapz(self.flux[sel],self.wavelength[sel])
                 continuum_area = (line[0]*(self.wavelength[sel][0]+self.wavelength[sel][-1])+2*line[1]) * spec_line_width/2               
