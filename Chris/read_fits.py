@@ -50,10 +50,13 @@ class Spectrum():
                 if verbose:
                     print('Feature ' + feat + ' : ', feats[i])
             elif feat[0]=='l':
-                wavelength_range = self.wavelength[sel][-1]-self.wavelength[sel][0]
-                line_area = np.trapz(self.flux[sel],self.wavelength[sel])
-                theory_area = (self.flux[sel][0]+self.flux[sel][-1]) * wavelength_range/2
-                feats[i] = (theory_area-line_area)/theory_area * wavelength_range
+                spec_line_width = self.wavelength[sel][-1]-self.wavelength[sel][0]
+                wSel = np.concatenate((self.wavelength[sel[0][0]-20:sel[0][0]],self.wavelength[sel[0][-1]:sel[0][-1]+20]))
+                fSel = np.concatenate((self.flux[sel[0][0]-20:sel[0][0]],self.flux[sel[0][-1]:sel[0][-1]+20]))
+                line = np.polyfit(wSel,fSel,1) 
+                spec_line_area = np.trapz(self.flux[sel],self.wavelength[sel])
+                continuum_area = (line[0]*(self.wavelength[sel][0]+self.wavelength[sel][-1])+2*line[1]) * spec_line_width/2               
+                feats[i] = (continuum_area-spec_line_area)/continuum_area * spec_line_width
                 if feats[i] != feats[i]:
                     feats[i] = 0
                 i += 1

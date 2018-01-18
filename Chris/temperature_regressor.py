@@ -8,7 +8,7 @@ from astropy.stats import mad_std
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import Imputer
+from sklearn.preprocessing import Imputer, StandardScaler
 from read_fits import Spectrum
 
 class Temperature_Regressor():
@@ -52,7 +52,7 @@ class Temperature_Regressor():
             self.names = np.append(self.names,[lin_names[idx] + "/" + i for i in lin_names[idx+1:]])
         return features
                                  
-    def predict_temperatures(self, tune=False):
+    def predict_temperatures(self, tune=False, verbose=False):
         ''' Fits a regressor to the data and returns model predictions and true values of a test set '''
         if tune == True:
             self.names = self.df.columns[38:52]
@@ -62,18 +62,24 @@ class Temperature_Regressor():
         else:
             self.max_features = 12
             regr=RandomForestRegressor(n_estimators=80, max_depth=10, max_features=self.max_features)
-        train_df, self.test_df = train_test_split(self.df,test_size=0.5)      
+        train_df, self.test_df = train_test_split(self.df,test_size=0.5)    
         X_train = self.extract_features(train_df)
         X_test = self.extract_features(self.test_df)
         y_train = train_df['teff'].values
         self.y_test = self.test_df['teff'].values
+        
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test=scaler.transform(X_test)
+        
         regr = regr.fit(X_train,y_train)
         self.y_test_pred = regr.predict(X_test)
         self.error = self.y_test_pred - self.y_test
         self.importances = regr.feature_importances_
-        for i in range(len(self.names)):
-            print("Importances:")
-            print(self.names[i] + ' : ', self.importances[i])
+        if verbose:
+            for i in range(len(self.names)):
+                print("Importances:")
+                print(self.names[i] + ' : ', self.importances[i])
     
     def blackbody(self, T, wavelength, counts):
         ''' Models an ideal blackbody curve of a given temperature '''
