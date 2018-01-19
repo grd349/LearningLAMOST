@@ -12,7 +12,7 @@ from astropy.convolution import convolve, Box1DKernel
 import gc
 import glob
 
-files = glob.glob('/data2/mrs493/DR1_2/*.fits')
+files = glob.glob('/data2/mrs493/DR1_3/*.fits')
 
 fBands = {'cB':[3980,4920], 'cV':[5070,5950],'cR':[5890,7270],'cI':[7310,8810],
           'lHa':[6555, 6575], 'lHb':[4855, 4870], 'lHg':[4320,4370],
@@ -107,12 +107,23 @@ for idx, fitsName in enumerate(files):
                 fW = fW[nans]
                 fF = fF[nans]
                 
-                sLin = sp.polyfit(fW, fF, 1)
+                S = sp.sum(1/fF)
+                Sx = sp.sum(fW/fF)
+                Sy = len(fF)
+                Sxx = sp.sum(fW**2/fF)
+                Sxy = sp.sum(fW)
                 
-                theoA = (sLin[0]*( wavelength[wUpper-1] + wavelength[wLower] ) + 2*sLin[1])*wRange/2.###
+                delta = S*Sxx - Sx**2
+                a = (Sxx*Sy - Sx*Sxy)/delta
+                b = (S*Sxy-Sx*Sy)/delta
+                
+                #sLin = sp.polyfit(fW, fF, 1)
+                theoA = (b*( wavelength[wUpper-1] + wavelength[wLower] ) + 2*a)*wRange/2.###
+                
+                #theoA = (sLin[0]*( wavelength[wUpper-1] + wavelength[wLower] ) + 2*sLin[1])*wRange/2.###
                 #theoA = (sLin[0]*( aW[0] + aW[-1] ) + 2*sLin[1])*(aW[-1] - aW[0])/2.#      
         
-                values[i] = wRange*(1-(actualA/theoA))
+                values[i] = wRange*(1-(actualA/theoA))#
                 
                 #comments are possible removal of nans from line
                 #possibly check certain number of points either side of like
@@ -156,6 +167,6 @@ for idx, fitsName in enumerate(files):
     hdulist.close()
     gc.collect()
 
-dr1.to_csv('spectra2.csv', index = False)
+dr1.to_csv('spectra3.csv', index = False)
 
 errors.to_csv('errors.csv', index = False)

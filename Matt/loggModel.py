@@ -51,13 +51,13 @@ train, test = train_test_split(df, test_size=0.2)
 X_train = train[features]
 X_test = test[features]
 
-y_train = train['teff'].tolist()
-y_test = test['teff'].tolist()
+y_train = train['logg'].tolist()
+y_test = test['logg'].tolist()
 
 ends = [sp.amin(y_test), sp.amax(y_test)]
 
 #
-parameter_grid = [{'n_estimators':[1,10,20,40,60,80,100],'max_depth':[1,10,100,1000, 2000, 3000, 4000, 5000],'max_features':sp.arange(3,len(features))[::3]}]#,len(features)]}]
+parameter_grid = [{'n_estimators':[1,10,20,40,60,80,100],'max_depth':[1,10,100,1000, 2000, 3000, 4000, 5000],'max_features':sp.arange(3, len(features))[::3]}]#,len(features)]}]
 regr = GridSearchCV(RandomForestRegressor(), parameter_grid, cv=5)
 regr.fit(df[features], df.teff.tolist())
 hyp = regr.best_params_
@@ -139,6 +139,6 @@ ax[1][1].set_title('Spectra of Greatest Outlier')
 ax[1][1].legend()
     
 plt.tight_layout()
-plt.savefig('figures/tempModel.pdf')
+plt.savefig('figures/loggModel.pdf')
 plt.show()
 
