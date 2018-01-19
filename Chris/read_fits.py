@@ -52,13 +52,23 @@ class Spectrum():
             elif feat[0]=='l':
                 spec_line_width = self.wavelength[sel][-1]-self.wavelength[sel][0]
                 wSel = np.concatenate((self.wavelength[sel[0]-20:sel[0]],self.wavelength[sel[-1]:sel[-1]+20]))
-                fSel = np.concatenate((self.flux[sel[0]-20:sel[0]],self.flux[sel[-1]:sel[-1]+20]))                
+                fSel = np.concatenate((self.flux[sel[0]-20:sel[0]],self.flux[sel[-1]:sel[-1]+20]))
                 check_nan = np.logical_not(np.isnan(fSel))
                 fSel = fSel[check_nan]
-                wSel = wSel[check_nan]              
-                line = np.polyfit(wSel,fSel,1) 
+                wSel = wSel[check_nan]
+                
+                S = np.sum(1/fSel)
+                Sx = np.sum(wSel/fSel)
+                Sy = len(fSel)
+                Sxx = np.sum(wSel**2/fSel)
+                Sxy = np.sum(wSel)
+                
+                grad = S*Sxx - Sx**2
+                a = (Sxx*Sy - Sx*Sxy)/grad
+                b = (S*Sxy - Sx*Sy)/grad
+                
                 spec_line_area = np.trapz(self.flux[sel],self.wavelength[sel])
-                continuum_area = (line[0]*(self.wavelength[sel][0]+self.wavelength[sel][-1])+2*line[1]) * spec_line_width/2               
+                continuum_area = (b*(self.wavelength[sel][0]+self.wavelength[sel][-1])+2*a) * spec_line_width/2   
                 feats[i] = (continuum_area-spec_line_area)/continuum_area * spec_line_width
                 if feats[i] != feats[i]:
                     feats[i] = 0
@@ -78,7 +88,7 @@ class Spectrum():
         return self.get_features()
         
 if __name__ == "__main__":
-    sdir = '/data2/mrs493/DR1_2/'
+    sdir = '/data2/mrs493/DR1_3/'
     files = glob.glob(sdir + '*.fits')
     fdict = {'cAll':[0,9000], 'cB':[3980, 4920], 'cV':[5070,5950], 'cR':[5890,7270], 'cI':[7310,8810],
              'lHa':[6555,6575], 'lHb':[4855,4870], 'lHg':[4320,4370], 'lHd':[4093,4113], 'lHe':[3960,3980], 
@@ -98,5 +108,5 @@ if __name__ == "__main__":
                 df_main = pd.concat([df_main, df])
         except:
             print("Failed for file : ", f)
-    df_main.to_csv('TempCSVs1/output_' + str(index) + '.csv')
+    df_main.to_csv('TempCSVs2/output_' + str(index) + '.csv')
 

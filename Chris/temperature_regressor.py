@@ -139,7 +139,7 @@ class Temperature_Regressor():
         plt.show()
         	
 if __name__ == "__main__":
-    direc = 'TempCSVs1'
+    direc = 'TempCSVs2'
     spec_regr = Temperature_Regressor(direc)
     spec_regr.predict_temperatures()
     spec_regr.plot_results()
