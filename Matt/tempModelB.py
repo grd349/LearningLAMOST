@@ -23,6 +23,8 @@ spec = pd.read_csv(sfile, sep=',')
 
 df = catalog.merge(spec, on='designation', how='inner')
 
+df = df.sort_values('total', ascending = False)
+
 #
 features = sp.array(df.columns[39:])
 colours = features[sp.array([feat[0]=='c' for feat in features])]
@@ -46,7 +48,10 @@ df[features] = scaler.fit_transform(df[features])
 
 #
 
-train, test = train_test_split(df, test_size=0.2)
+#train, test = train_test_split(df, test_size=0.2)
+
+train = df[:1000]
+test = df[1000:]
 
 X_train = train[features]
 X_test = test[features]
@@ -139,6 +144,6 @@ ax[1][1].set_title('Spectra of Greatest Outlier')
 ax[1][1].legend()
     
 plt.tight_layout()
-plt.savefig('figures/tempModel.pdf')
+plt.savefig('figures/tempModelB.pdf')
 plt.show()
 

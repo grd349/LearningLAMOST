@@ -156,6 +156,6 @@ for idx, fitsName in enumerate(files):
     hdulist.close()
     gc.collect()
 
-dr1.to_csv('spectra3.csv', index = False)
+dr1.to_csv('spectra2.csv', index = False)
 
 errors.to_csv('errors.csv', index = False)

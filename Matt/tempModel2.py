@@ -17,7 +17,7 @@ cfile = '/data2/cpb405/dr1_stellar.csv'
 catalog = pd.read_csv(cfile, sep='|')
 catalog.drop_duplicates(subset = 'designation', inplace = True)
     
-sfile = 'spectra3.csv'    ###filename###
+sfile = 'spectra2.csv'    ###filename###
 
 spec = pd.read_csv(sfile, sep=',')
 
@@ -139,6 +139,6 @@ ax[1][1].set_title('Spectra of Greatest Outlier')
 ax[1][1].legend()
     
 plt.tight_layout()
-plt.savefig('figures/tempModel.pdf')
+plt.savefig('figures/tempModel2.pdf')
 plt.show()
 
