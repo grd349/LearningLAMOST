@@ -12,7 +12,7 @@ from astropy.convolution import convolve, Box1DKernel
 import gc
 import glob
 
-files = glob.glob('/data2/mrs493/DR1_2/*.fits')[0:10]
+files = glob.glob('/data2/mrs493/DR1_2/*.fits')
 
 fBands = {'cB':[3980,4920], 'cV':[5070,5950],'cR':[5890,7270],'cI':[7310,8810],
           'lHa':[6555, 6575], 'lHb':[4855, 4870], 'lHg':[4320,4370],
