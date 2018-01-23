@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 from astropy.io import fits
+from astropy.convolution import convolve, Box1DKernel
 import pandas as pd
 import sys
 
@@ -13,10 +14,10 @@ class Spectrum():
         self.fits_sfile = fits_sfile
         self.fdict = fdict
         keys = [n[0] for n in fdict.items()]
-        keys = keys + ['FILENAME', 'designation', 'CLASS']
+        keys = keys + ['d1', 'd2', 'd3', 'FILENAME', 'designation', 'CLASS']
         self.df = pd.DataFrame(columns=keys)
         self.read_fits_file()
-        self.process_fits_file()
+        self.get_smoothing_features()
         
     def read_fits_file(self):
         ''' Read in and store the fits file data '''
@@ -26,7 +27,7 @@ class Spectrum():
         self.fname = hdulist[0].header['FILENAME']
         self.designation = hdulist[0].header['DESIG'][7:]
         init = hdulist[0].header['COEFF0']
-        disp = hdulist[0].header['COEFF1']      
+        disp = hdulist[0].header['COEFF1']
         self.wavelength = 10**(np.arange(init,init+disp*(len(self.flux)-0.9),disp))
         hdulist.close()
     
@@ -34,6 +35,19 @@ class Spectrum():
         ''' Kills negative flux values and deals with echelle overlap region @ ~5580 A '''
         self.flux[self.flux < 0] = np.nan
         self.flux[(self.wavelength > 5570) & (self.wavelength < 5590)] = np.nan
+        
+    def get_smoothing_features(self):
+        ''' Smoothes spectum using two different boxcar functions and finds differences '''
+        w1 = 10
+        w2 = 100
+        buff = 1      
+        smooth1 = convolve(self.flux,Box1DKernel(w1))[buff*w2:-buff*w2]
+        smooth2 = convolve(self.flux,Box1DKernel(w2))[buff*w2:-buff*w2]        
+        self.process_fits_file()
+        total_flux = np.nanmean(self.flux)
+        self.d1 = np.nanmean(abs(self.flux[buff*w2:-buff*w2]-smooth1))/total_flux
+        self.d2 = np.nanmean(abs(self.flux[buff*w2:-buff*w2]-smooth2))/total_flux
+        self.d3 = np.nanmean(abs(smooth1-smooth2))/total_flux
 
     def get_features(self, verbose=False):
         ''' Calculates colour indices of continuum and equivalent widths of spectral lines '''
@@ -75,7 +89,7 @@ class Spectrum():
                 i += 1
                 if verbose:
                     print('Feature ' + feat + ' : ', feats[i])     
-        self.df.loc[len(self.df)] = [*feats, self.fname, self.designation, self.spec_class]
+        self.df.loc[len(self.df)] = [*feats, self.d1, self.d2, self.d3, self.fname, self.designation, self.spec_class]
         return self.df
         
     def plot_flux(self):

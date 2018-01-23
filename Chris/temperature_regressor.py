@@ -12,14 +12,16 @@ from sklearn.preprocessing import Imputer, StandardScaler
 from read_fits import Spectrum
 
 class Temperature_Regressor():
-    def __init__(self, direc):
+    def __init__(self, direc, bright = False):
         ''' Reads in dataframe and returns features as a 2D numpy array '''
         features_df = pd.concat([pd.read_csv(f, sep=',') for f in glob.glob(direc + '/*.csv')])       
         catalog_file = "/data2/cpb405/dr1_stellar.csv"
         catalog = pd.read_csv(catalog_file, sep='|')
         catalog.drop_duplicates(subset = 'designation', inplace = True)
         self.df = catalog.merge(features_df, on='designation', how='inner')
-        self.names = self.df.columns[38:52]
+        if bright:
+            self.df = self.df.sort_values('cAll')[:1000]
+        self.names = self.df.columns[38:55]
         imputer = Imputer(missing_values = 0)
         self.df[self.names] = imputer.fit_transform(self.df[self.names])
 
@@ -57,18 +59,17 @@ class Temperature_Regressor():
     def predict_temperatures(self, model, tune=False, verbose=False):
         ''' Fits a regressor to the data and returns model predictions and true values of a test set '''
         train_df, self.test_df = train_test_split(self.df,test_size=0.5)
-        print(self.names)
         X_train = train_df.as_matrix(columns = self.names)
         X_test = self.test_df.as_matrix(columns = self.names)
         y_train = train_df[model].values
         self.y_test = self.test_df[model].values 
-        if tune == True:
+        if tune:
             hyp = self.tune_hyperparameters(X_train,y_train,True)
             self.max_features = hyp['max_features']
             regr = RandomForestRegressor(n_estimators = hyp['n_estimators'], max_depth = hyp['max_depth'], max_features = self.max_features)   
         else:
-            self.max_features = 12
-            regr = RandomForestRegressor(n_estimators=60, max_depth=3000, max_features=self.max_features)     
+            self.max_features = 15
+            regr = RandomForestRegressor(n_estimators=100, max_depth=3000, max_features=self.max_features)     
         regr = regr.fit(X_train,y_train)        
         self.y_test_pred = regr.predict(X_test)
         self.error = self.y_test_pred - self.y_test
@@ -143,7 +144,7 @@ class Temperature_Regressor():
         	
 if __name__ == "__main__":
     direc = 'TempCSVs1'
-    spec_regr = Temperature_Regressor(direc)
+    spec_regr = Temperature_Regressor(direc, bright = True)
     spec_regr.extract_features()
     models = ['teff', 'logg', 'feh']
     for mod in models:
