@@ -7,7 +7,7 @@ import scipy as sp
 #import matplotlib.pyplot as plt
 
 from astropy.io import fits
-from astropy.convolution import convolve, Box1DKernel
+#from astropy.convolution import convolve, Box1DKernel
 
 import gc
 import glob
@@ -42,14 +42,7 @@ for idx, fitsName in enumerate(files):
         stitchUpper = sp.searchsorted(wavelength,5590,side='right')
         flux[stitchLower:stitchUpper] = sp.nan
     
-        ##
-        '''re-add'''
-            
-    
         '''
-        start
-        '''
-    
         wid = 10
         width = 100
         buff = 1
@@ -66,6 +59,7 @@ for idx, fitsName in enumerate(files):
         diff1 = sp.nanmean(abs(flux[buff*width:-buff*width] - smoothFlux))/total
         diff2 = sp.nanmean(abs(flux[buff*width:-buff*width] - smth))/total
         diff3 = sp.nanmean(abs(smth - smoothFlux))/total
+        '''
     
         #
     
@@ -78,9 +72,6 @@ for idx, fitsName in enumerate(files):
         #testing2 = (testing==testing and abs(testing)>10)
         #counts = [abs(testing)]   
             #to do: look into 'spikeness' 
-        '''
-        end
-        '''
     
         values = sp.zeros(len(fBands))
         i = 0
