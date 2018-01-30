@@ -7,7 +7,7 @@ import scipy as sp
 #import matplotlib.pyplot as plt
 
 from astropy.io import fits
-#from astropy.convolution import convolve, Box1DKernel
+from astropy.convolution import convolve, Box1DKernel
 
 import gc
 import glob
@@ -41,8 +41,11 @@ for idx, fitsName in enumerate(files):
         stitchLower = sp.searchsorted(wavelength,5570,side='left')
         stitchUpper = sp.searchsorted(wavelength,5590,side='right')
         flux[stitchLower:stitchUpper] = sp.nan
-    
-        '''
+    	
+	'''
+	starts
+	'''
+
         wid = 10
         width = 100
         buff = 1
@@ -59,19 +62,10 @@ for idx, fitsName in enumerate(files):
         diff1 = sp.nanmean(abs(flux[buff*width:-buff*width] - smoothFlux))/total
         diff2 = sp.nanmean(abs(flux[buff*width:-buff*width] - smth))/total
         diff3 = sp.nanmean(abs(smth - smoothFlux))/total
+    
         '''
-    
-        #
-    
-        ##flux = flux[5*width:-5*width]
-        ##wavelength = wavelength[5*width:-5*width]
-    
-        #spike = sp.median(sp.diff(flux[::10]))
-    
-        #testing = sp.diff(flux[::10])
-        #testing2 = (testing==testing and abs(testing)>10)
-        #counts = [abs(testing)]   
-            #to do: look into 'spikeness' 
+	end
+    	'''
     
         values = sp.zeros(len(fBands))
         i = 0
@@ -86,10 +80,6 @@ for idx, fitsName in enumerate(files):
                 wRange = wavelength[wUpper-1] - wavelength[wLower]
                 
                 actualA = sp.trapz(flux[wLower:wUpper], wavelength[wLower:wUpper])
-                #aF = flux[wLower:wUpper]#
-                #nans = sp.logical_not(sp.isnan(aF))#
-                #aF = aF[nans]#
-                #aW = wavelength[wLower:wUpper][nans]##actualA = sp.trapz(aF, aW)
                 
                 fW = sp.concatenate((wavelength[wLower-20:wLower], wavelength[wUpper-1:wUpper+19]))
                 fF = sp.concatenate((flux[wLower-20:wLower], flux[wUpper-1:wUpper+19]))
@@ -97,7 +87,7 @@ for idx, fitsName in enumerate(files):
                 nans = sp.logical_not(sp.isnan(fF))
                 fW = fW[nans]
                 fF = fF[nans]
-                
+                '''
                 S = sp.sum(1/fF)
                 Sx = sp.sum(fW/fF)
                 Sy = len(fF)
@@ -107,35 +97,14 @@ for idx, fitsName in enumerate(files):
                 delta = S*Sxx - Sx**2
                 a = (Sxx*Sy - Sx*Sxy)/delta
                 b = (S*Sxy-Sx*Sy)/delta
-                
-                #sLin = sp.polyfit(fW, fF, 1)
                 theoA = (b*( wavelength[wUpper-1] + wavelength[wLower] ) + 2*a)*wRange/2.###
+                '''
+                sLin = sp.polyfit(fW, fF, 1)
                 
-                #theoA = (sLin[0]*( wavelength[wUpper-1] + wavelength[wLower] ) + 2*sLin[1])*wRange/2.###
-                #theoA = (sLin[0]*( aW[0] + aW[-1] ) + 2*sLin[1])*(aW[-1] - aW[0])/2.#      
+                theoA = (sLin[0]*( wavelength[wUpper-1] + wavelength[wLower] ) + 2*sLin[1])*wRange/2.
         
-                values[i] = wRange*(1-(actualA/theoA))#
-                
-                #comments are possible removal of nans from line
-                #possibly check certain number of points either side of like
-
-                '''
-                print feat
-                print 'fW: ', fW
-                print 'fF: ', fF
-                print 'coeff: ', sLin
-                print 'act: ', actualA
-                print 'theo: ', theoA
-                print 'equiv: ', values[i]
-                
-                fig, ax = plt.subplots()
-                plt.plot(wavelength[wLower:wUpper], flux[wLower:wUpper])
-                plt.plot(fW, fF)
-                plt.plot(wavelength[wLower:wUpper], sLin[0]*wavelength[wLower:wUpper] + sLin[1])
-                
-                plt.show()
-                '''
-                    
+                values[i] = wRange*(1-(actualA/theoA))
+                                    
             elif feat[0]=='c':
                 bandFlux = flux[wLower:wUpper]
                 values[i] = -2.5*sp.log10(sp.nanmean(bandFlux))
@@ -145,8 +114,7 @@ for idx, fitsName in enumerate(files):
             
             i += 1
         df = pd.DataFrame(columns=keys)
-        df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], total, diff1, diff2, diff3, values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12]] #upgrade to using python 3 and use values* instead of individual indexing
-        #df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], total, diff1, diff2, diff3, *values]]
+        df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], total, diff1, diff2, diff3, values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12]]
         dr1 = pd.concat([dr1, df])
 
     except:

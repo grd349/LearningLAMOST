@@ -27,7 +27,7 @@ spec = pd.read_csv(sfile, sep=',')
 df = catalog.merge(spec, on='designation', how='inner')
 
 if bright and bright%1==0: df = df.sort_values('total', ascending = False)[:bright]
-elif bright: df = df.sort_values('total', ascending = False)[:int(bright*len(df['designation']))]
+elif bright and bright <= 1: df = df.sort_values('total', ascending = False)[:int(bright*len(df['designation']))]
 
 #
 features = sp.array(df.columns[39:])
