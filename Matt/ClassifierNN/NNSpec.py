@@ -14,11 +14,11 @@ cls = len(classes)
 flux = []
 CLASS = []
 
-#batchSize = 100
 wavelengths = 3800
 
-batch_frac= 0.2
 train_frac = 0.7
+batch_frac= 0.02
+steps = 20000
 
 t = time.time()
 
@@ -39,18 +39,13 @@ print(time.time() - t)
 for i in range(cls):
     print(classes[i], ': ', np.sum([x[i] for x in CLASS]))
 
-
 split = np.random.randn(len(files))>=train_frac
 
-print(split)
-
 x_train = np.array(flux[split])
-x_test = np.array(flux[~split])
+x_test = np.array(flux[not split])
 
 y_train = np.array(CLASS[split])
-y_test = np.array(CLASS[~split])
-
-'''need better train test split (sklearn?) and batching'''
+y_test = np.array(CLASS[not split])
 
 x = tf.placeholder(tf.float32, shape = [None, wavelengths])
 y_ = tf.placeholder(tf.float32, shape = [None, cls])
@@ -73,8 +68,7 @@ confusion = tf.confusion_matrix(tf.argmax(y,1), tf.argmax(y_,1))
 with tf.Session() as sess:
     t = time.time()
     sess.run(tf.global_variables_initializer())
-    for i in range(20000):
-        #batch = np.random.choice(split, size = batchSize)
+    for i in range(steps):
         batch = np.random.randn(len(x_train))>=batch_frac
         batch_x = x_train[batch]
         batch_y = y_train[batch]
@@ -89,6 +83,5 @@ with tf.Session() as sess:
     print(conf)
     np.savetxt('confusion.csv', conf, fmt = '%i', delimiter = ',')
     print(time.time() - t)
-    
-    '''add plots'''
-    
+
+import plotNN
