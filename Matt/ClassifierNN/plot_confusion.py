@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 if __name__ == "__main__":
-    conf = np.loadtxt('confusion.csv', delimiter = ',')
+    conf = np.loadtxt('Files/confusion.csv', delimiter = ',')
     
     classes = ['STAR', 'GALAXY', 'QSO', 'Unknown']
 

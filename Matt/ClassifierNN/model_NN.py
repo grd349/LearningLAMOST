@@ -81,7 +81,7 @@ with tf.Session() as sess:
     conf, acc = sess.run([confusion, accuracy], feed_dict={x: x_test, y_: y_test})
     print('test accuracy {}'.format(acc))
     print(conf)
-    np.savetxt('confusion.csv', conf, fmt = '%i', delimiter = ',')
+    np.savetxt('Files/confusion.csv', conf, fmt = '%i', delimiter = ',')
     print(time.time() - t)
 
-import plotNN
+import plot_confusion

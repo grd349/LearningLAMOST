@@ -20,7 +20,7 @@ cfile = '/data2/cpb405/dr1_stellar.csv'
 catalog = pd.read_csv(cfile, sep='|')
 catalog.drop_duplicates(subset = 'designation', inplace = True)
     
-sfile = 'spectra3.csv'    ###filename###
+sfile = 'Files/spectra2.csv'    ###filename###
 
 spec = pd.read_csv(sfile, sep=',')
 
@@ -62,6 +62,7 @@ parameter_grid = [{'n_estimators':[20,40,60,80,100],'max_depth':[1000,2000,3000,
 parameters = ['teff', 'logg', 'feh']
 
 for parameter in parameters:
+    print(parameter)
     y_train = train[parameter].tolist()
     y_test = test[parameter].tolist()
     
@@ -140,9 +141,7 @@ for parameter in parameters:
     else: spectrum.plotFlux(ax = ax[1][1], label = 'Outlier')
         
     plt.tight_layout()
-    if bright: plt.savefig('figures/' + parameter + 'Model' + str(bright) + 'B.pdf')
-    else: plt.savefig('figures/' + parameter + 'Model.pdf')
-
-    
+    if bright: plt.savefig('Figures/' + parameter + 'Model' + str(bright) + 'B.pdf')
+    else: plt.savefig('Figures/' + parameter + 'Model.pdf')
 
 plt.show()
