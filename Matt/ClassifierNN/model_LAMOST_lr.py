@@ -1,7 +1,10 @@
+from plot_model import plot_results
+
 import glob
 from astropy.io import fits
 import numpy as np
 import tensorflow as tf
+
 
 import time    
 
@@ -17,10 +20,10 @@ CLASS = []
 wavelengths = 3800
 
 train_frac = 0.7
-batch_frac= 0.02
-steps = 20000
+batch_frac= 0.025
 
-t = time.time()
+record = 100
+train_steps = 10000
 
 for idx, file in enumerate(files):
     with fits.open(file) as hdulist:
@@ -34,18 +37,16 @@ for idx, file in enumerate(files):
 flux = np.array(flux)
 CLASS = np.array(CLASS)
 
-print(time.time() - t)
-
 for i in range(cls):
     print(classes[i], ': ', np.sum([x[i] for x in CLASS]))
 
-split = np.random.randn(len(files))>=train_frac
+split = np.random.random(len(files))>=train_frac
 
 x_train = np.array(flux[split])
-x_test = np.array(flux[not split])
+x_test = np.array(flux[[not s for s in split]])
 
 y_train = np.array(CLASS[split])
-y_test = np.array(CLASS[not split])
+y_test = np.array(CLASS[[not s for s in split]])
 
 x = tf.placeholder(tf.float32, shape = [None, wavelengths])
 y_ = tf.placeholder(tf.float32, shape = [None, cls])
@@ -68,20 +69,22 @@ confusion = tf.confusion_matrix(tf.argmax(y,1), tf.argmax(y_,1))
 with tf.Session() as sess:
     t = time.time()
     sess.run(tf.global_variables_initializer())
-    for i in range(steps):
-        batch = np.random.randn(len(x_train))>=batch_frac
+    for i in range(train_steps):
+        batch = np.random.random(len(x_train))<=batch_frac
         batch_x = x_train[batch]
         batch_y = y_train[batch]
-        if i%100 ==0:
+        if i%record == 0:
             train_accuracy = sess.run(accuracy, feed_dict={x: x_test, y_: y_test})
             print('step {} training accuracy {}'.format(i, train_accuracy))
-            accuracies.append(train_accuracy)
-        sess.run(train_step, feed_dict={x: batch_x, y_: batch_y})
-
+            accuracies.append([i, train_accuracy])
+        train_step.run(feed_dict={x: batch_x, y_: batch_y})
     conf, acc = sess.run([confusion, accuracy], feed_dict={x: x_test, y_: y_test})
     print('test accuracy {}'.format(acc))
     print(conf)
-    np.savetxt('Files/confusion.csv', conf, fmt = '%i', delimiter = ',')
-    print(time.time() - t)
+    accuracies.append([i+1, acc])
+    np.savetxt('Files/LAMOST_lr/classes.csv', classes, fmt = '%s', delimiter = ',')
+    np.savetxt('Files/LAMOST_lr/confusion.csv', conf, fmt = '%i', delimiter = ',')
+    np.savetxt('Files/LAMOST_lr/accuracies.csv', accuracies, delimiter = ',')
+    print('training time: ', time.time() - t, 's')
 
-import plot_confusion
+plot_results('LAMOST_lr')

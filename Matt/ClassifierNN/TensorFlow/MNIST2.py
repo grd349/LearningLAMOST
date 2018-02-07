@@ -22,7 +22,7 @@ sess = tf.InteractiveSession()
 x = tf.placeholder(tf.float32, shape=[None, 784])
 y_ = tf.placeholder(tf.float32, shape = [None, 10])
 
-W_conv1 = weight_variable([5,5,1,32])
+W_conv1 = weight_variable([29,29,1,32])
 b_conv1 = bias_variable([32])
 
 x_images = tf.reshape(x, [-1, 28, 28, 1])
