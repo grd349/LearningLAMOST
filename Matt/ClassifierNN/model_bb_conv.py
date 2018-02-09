@@ -36,8 +36,37 @@ def conv(x,W):
 def max_pool(x, width):
     return tf.nn.pool(x, [width], 'MAX', 'SAME', strides = [width])
 
-classes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Other']
-#classes = ['bb', 'Other']  
+def classification(index):
+    if index == 0:
+        classes = ['bb', 'Other']
+        def hot_v(t):
+            hot = [0]*2
+            if t!=t: hot[-1] = 1
+            else: hot[0] = 1
+            return hot
+    if index == 1:
+        classes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Other']
+        def hot_v(t):
+            hot = [0]*10
+            if t!=t: hot[-1] = 1
+            else: hot[int(t/1000) - 1] = 1
+            return hot
+    if index ==2:
+        classes = ['O', 'B', 'A', 'F', 'G', 'K', 'M', 'Other']
+        def hot_v(t):
+            hot = [0]*8
+            if t>= 30000: hot[0] = 1
+            elif t>=10000: hot[1] = 1
+            elif t>=7500: hot[2] = 1
+            elif t>=6000: hot[3] = 1
+            elif t>=5200: hot[4]= 1
+            elif t>=3700: hot[5] = 1
+            elif t>=2400: hot[6] = 1
+            else: hot[-1] = 1
+            return hot
+    return classes, hot_v
+
+classes, hot_v = classification(2)
 
 cls = len(classes)
 
@@ -64,7 +93,8 @@ keep = 0.5
 record = 100
 train_steps = 30000
 
-temps = np.random.uniform(1000, 10000, samples)
+#temps = np.random.uniform(1000, 10000, samples)
+temps = np.random.uniform(2400, 33000, samples)
 	#generate a random distribution of tempratures
 
 temps[np.random.random(len(temps))<=line_frac] = np.nan
@@ -75,14 +105,9 @@ label = []
 print('generating data...')
 
 for t in temps:
-    hot = [0]*cls
-    if t!=t:
-        spectrum = line()
-        hot[-1] = 1
-    else:
-        spectrum = blackbody(t)
-        hot[int(t/1000) - 1] = 1
-        #hot[0] = 1
+    if t!=t: spectrum = line()
+    else: spectrum = blackbody(t)
+    hot = hot_v(t)
     label.append(hot)
     spectra.append(spectrum)
 

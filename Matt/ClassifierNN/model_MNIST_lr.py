@@ -17,7 +17,7 @@ x_train, y_train = mnist.train.next_batch(samples)
 x_test = mnist.test.images
 y_test = mnist.test.labels
 
-classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+classes = ['no. 0', 'no. 1', 'no. 2', 'no. 3', 'no. 4', 'no. 5', 'no. 6', 'no. 7', 'no. 8', 'no. 9']
 cls = len(classes)
 wavelengths = len(x_train[0])
 

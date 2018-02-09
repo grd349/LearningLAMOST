@@ -70,5 +70,9 @@ def plot_results(folder):
     plt.savefig('Files/' + folder + '/results_' + folder + '.pdf')
     plt.show()
 
+#possible additional/alternative plots
+#plot of classification against some feature (i.e. temp for black bodies)
+#pie charts for each classification
+
 if __name__ == "__main__":
     plot_results(sys.argv[1])
