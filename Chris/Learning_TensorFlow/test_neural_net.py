@@ -1,14 +1,26 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 #import matplotlib.pyplot as plt
+from astropy.io import fits
+import glob
 import numpy as np
 import tensorflow as tf
 
 class Neural_Net():
     def __init__(self):
-        self.MKClasses = ['B','A','F','G','K','M']
+        self.MKClasses = ['B-type','A-type','F-type','G-type','K-type','M-type']
         self.MKTemps = [10000,7500,6000,5200,3700,2400]
-
+    
+    def read_lamost_data(self,files):
+        ''' Reads in the flux and classes from LAMOST fits files & converts classes to one-hot vectors '''
+        self.flux = []
+        self.scls = []
+        for idx, file in enumerate(files):
+            with fits.open(file) as hdulist:
+                self.flux.append((hdulist[0].data)[0])
+                self.scls.append(hdulist[0].header['CLASS'])
+        self.cls = self.onehot(self.scls)
+        
     def create_artificial_data(self,nStars,nGalaxies,plot=True):
         ''' Creates a set of artificial stars (modelled as blackbodies) and galaxies (modelled as straight lines) '''
         fStar = []
@@ -26,7 +38,7 @@ class Neural_Net():
         cGalaxy = []
         for idx in range(nGalaxies):
             fGalaxy.append(self.line())
-            cGalaxy.append('galaxy')
+            cGalaxy.append('Galaxy')
         fGalaxy = np.array(fGalaxy)
         cGalaxy = np.array(cGalaxy)
         
@@ -39,8 +51,8 @@ class Neural_Net():
                 ax.set_ylabel("Flux")
 
         self.flux = np.concatenate((fStar,fGalaxy))
-        self.cls = np.concatenate((cStar,cGalaxy))
-        self.cls = self.onehot(self.cls)
+        self.scls = np.concatenate((cStar,cGalaxy))
+        self.cls = self.onehot(self.scls)
         
     def predict_class(self):
         ''' Sets up a neural net with one layer using a simple linear estimator '''
@@ -66,7 +78,6 @@ class Neural_Net():
             for i in range(10000):
                 batch = np.random.random(len(x_train)) > 0.01
                 if i % 100 == 0:
-                    #train_accuracy = accuracy.eval(feed_dict={x: x_train[batch], y_: y_train[batch]})
                     train_accuracy = accuracy.eval(feed_dict={x: x_test, y_: y_test})
                     print('step %d, training accuracy %g' % (i, train_accuracy))
                 sess.run(train_step, feed_dict={x: x_train[batch], y_: y_train[batch]})
@@ -75,7 +86,7 @@ class Neural_Net():
     
     def convolution(self):
         ''' Sets up a 1D convolutional multi-layered neural net '''
-        x_train, x_test, y_train, y_test = train_test_split(self.flux, self.cls, test_size=0.5)
+        x_train, x_test, y_train, y_test, labels_train, self.labels = train_test_split(self.flux, self.cls, self.scls, test_size=0.5)
         
         x = tf.placeholder(tf.float32, [None, len(self.flux[0])])
         x2 = tf.reshape(x,[-1,len(self.flux[0]),1])
@@ -116,7 +127,7 @@ class Neural_Net():
         self.batch = []
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
-            for i in range(2000):
+            for i in range(2500):
                 batch = np.random.random(len(x_train)) > 0.01
                 if i % 10 == 0:
                     train_accuracy = accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
@@ -126,13 +137,13 @@ class Neural_Net():
                 train_step.run(feed_dict={x: x_train[batch], y_: y_train[batch], keep_prob: 0.5})         
             print('test accuracy %g' % accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0}))
             self.correct_pred = correct_prediction.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
-            self.labels = y_test
     
     def save(self):
-        np.savetxt('AccBatch.csv',np.column_stack((self.batch,self.accuracy)), delimiter=',')
-        np.savetxt('PredLabs.csv',np.column_stack((self.correct_pred,self.labels)), delimiter=',')
+        ''' Saves final results from neural net into csv files '''
+        np.savetxt('AccBatch.csv', np.column_stack((self.batch,self.accuracy)), delimiter=',')
+        np.savetxt('Predictions.csv', self.correct_pred, delimiter=',')
+        np.savetxt('Labels.csv', self.labels, delimiter=',', fmt="%s")
         
-
     def blackbody(self, T, wavelength):
         ''' Models an ideal blackbody curve of a given temperature '''
         h = 6.63e-34
@@ -165,18 +176,25 @@ class Neural_Net():
         return onehot_encoded
     
     def weight_variable(self, shape):
+        ''' Randomly initialises weight variable '''
         initial = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial)
 
     def bias_variable(self, shape):
+        ''' Randomly initialises bias variable '''
         initial = tf.constant(0.1, shape=shape)
         return tf.Variable(initial)
     
     def conv1d(self, x, W):
+        ''' Performs 1D convolution '''
         return tf.nn.conv1d(x, W, 1, 'SAME')
         
 if __name__ == "__main__":
+    sdir = '/data2/mrs493/DR1_3/'
+    files = glob.glob(sdir + '*.fits')
+    
     NN = Neural_Net()
-    NN.create_artificial_data(1000,100,False)
+    NN.read_lamost_data(files)
+    #NN.create_artificial_data(1000,100,False)
     NN.convolution()
     NN.save()

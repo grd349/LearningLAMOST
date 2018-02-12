@@ -1,24 +1,47 @@
 import matplotlib.pyplot as plt
 import numpy as np
-#import seaborn as sns
+import pandas as pd
+import seaborn as sns
 
-data1 = np.genfromtxt('AccBatch1.csv', delimiter=',')
-batch = data1[:,0]
-accuracy = data1[:,1]
+accbatch = np.genfromtxt('Files/AccBatch1.csv', delimiter=',')
+batch = accbatch[:,0]
+accuracy = accbatch[:,1]
 
-fig, ax = plt.subplots()
-ax.plot(batch, accuracy)
-ax.set_xlabel("Batch number")
-ax.set_ylabel("Accuracy")
-plt.savefig("AccPlotnoNoise")
-"""
-sns.set(style="whitegrid")
+labs = np.genfromtxt('Files/Labels1.csv', delimiter=',', dtype=str)
+preds = np.genfromtxt('Files/Predictions1.csv', delimiter=',')
 
-data2 = np.genfromtxt('PredLabs.csv', delimiter=',')
+true_false = []
+true = 0
+false = 0
+for idx in range(len(preds)):
+    if preds[idx] == 0:
+        true_false.append("Incorrect")
+        false+=1
+    else:
+        true_false.append("Correct")
+        true+=1
 
-# Draw a nested barplot to show survival for class and sex
-g = sns.factorplot(x="class", y="survived", hue="sex", data=titanic,
-                   size=6, kind="bar", palette="muted")
-g.despine(left=True)
-g.set_ylabels("survival probability")
-"""
+d = {'Labels':labs,'Predictions':true_false}
+df = pd.DataFrame(data=d)
+
+fig, ax = plt.subplots(2,2,figsize=(12,8))
+fig.suptitle("Convolutional Neural Net",y=0.98,fontsize=24)
+
+sns.factorplot(x='Labels', hue='Predictions', data=df, size=6, kind='count', palette='muted', ax=ax[0][0])
+ax[0][0].set_xlabel("Class")
+ax[0][0].set_ylabel("Counts")
+ax[0][0].set_title("Predictions for Each Class")
+
+ax[0][1].plot(batch, accuracy)
+ax[0][1].set_xlabel("Batch number")
+ax[0][1].set_ylabel("Accuracy")
+ax[0][1].set_title("Accuracy with Training Batch")
+#plt.savefig("AccPlotnoNoise")
+
+ax[1][0].pie([true,false],labels=["Correct","Incorrect"])
+ax[1][0].axis("equal")
+ax[1][0].set_title("Total Number of Correct/Incorrect Predictions")
+
+plt.tight_layout()
+plt.savefig("MKNoiseResults")
+#plt.show()
