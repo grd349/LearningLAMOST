@@ -15,7 +15,9 @@ def plot_results(folder):
     
     fig.suptitle('Neural Network Classification of Black Body Spectrum')
     
-    colours = ['purple', 'green', 'blue', 'pink', 'brown', 'red', 'orange', 'yellow', 'teal', 'light green']
+    #colours = ['purple', 'green', 'blue', 'pink', 'brown', 'red', 'orange', 'yellow', 'teal', 'light green']
+    
+    colours = ['navy', 'royal blue', 'blue', 'cerulean', 'sea blue', 'turquoise', 'aqua', 'cyan', "robin's egg blue", 'pale blue']
     
     actual = conf.copy()
     

@@ -20,7 +20,9 @@ def conv(x,W):
 
 def max_pool(x, width):
     return tf.nn.pool(x, [width], 'MAX', 'SAME', strides = [width])
-
+'''
+start
+'''
 files = glob.glob('/data2/mrs493/DR1_3/*.fits')
 
 samples = len(files)
@@ -48,6 +50,10 @@ CLASS = np.array(CLASS)
 
 for i in range(cls):
     print(classes[i], ': ', np.sum([x[i] for x in CLASS]))
+
+'''
+end
+'''
 
 train_frac = 0.7
 batch_frac= 0.025
