@@ -19,7 +19,10 @@ class Neural_Net():
             with fits.open(file) as hdulist:
                 self.flux.append((hdulist[0].data)[0])
                 self.scls.append(hdulist[0].header['CLASS'])
+        self.flux = np.array(self.flux)
+        self.scls = np.array(self.scls)
         self.cls = self.onehot(self.scls)
+        print("LAMOST data successfully read in...")
         
     def create_artificial_data(self,nStars,nGalaxies,plot=True):
         ''' Creates a set of artificial stars (modelled as blackbodies) and galaxies (modelled as straight lines) '''
@@ -53,6 +56,7 @@ class Neural_Net():
         self.flux = np.concatenate((fStar,fGalaxy))
         self.scls = np.concatenate((cStar,cGalaxy))
         self.cls = self.onehot(self.scls)
+        print("Artificial data created...")
         
     def predict_class(self):
         ''' Sets up a neural net with one layer using a simple linear estimator '''
