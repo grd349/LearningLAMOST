@@ -43,5 +43,5 @@ ax[1][0].axis("equal")
 ax[1][0].set_title("Total Number of Correct/Incorrect Predictions")
 
 plt.tight_layout()
-plt.savefig("MKNoiseResults")
-#plt.show()
+#plt.savefig("MKNoiseResults")
+plt.show()
