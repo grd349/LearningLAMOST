@@ -1,7 +1,9 @@
 from plot_model import plot_results
 
+import pandas as pd
 import numpy as np
 from astropy.io import fits
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 import matplotlib.pyplot as plt
 
@@ -9,6 +11,23 @@ import glob
 import time
 
 import tensorflow as tf
+
+'''
+K 3772
+M 3082
+G 2750
+F 3271
+Unknown 1798
+GALAXY 196
+A 627
+QSO 70
+C 2
+B 23
+D 5
+W 16
+E 7
+O 2
+'''
 
 class Neural_Network:
     def __init__(self):
@@ -90,7 +109,7 @@ class Neural_Network:
         np.savetxt('Files/' + folder + '/classes.csv', self.classes, fmt = '%s', delimiter = ',')
         np.savetxt('Files/' + folder + '/confusion.csv', conf, fmt = '%i', delimiter = ',')
         np.savetxt('Files/' + folder + '/accuracies.csv', accuracies, delimiter = ',')
-    
+
     def make_spectra(self, samples, line_frac): 
         'produce a test data set of samples spectra, of which line_frac are lines and the remained are blackbodies with a uniform distribution of temperatures'
         self.samples = samples
@@ -125,42 +144,75 @@ class Neural_Network:
         
         print('data generated: ', time.time() - ti)
 
-    def get_LAMOST(self):
+    def get_LAMOST(self, MK = True):
         'read in the spectra from the LAMOST data'
         
         ti = time.time()
-        print('reading data...')
+        print('reading training data...')
         
-        files = glob.glob('/data2/mrs493/DR1_3/*.fits')
-
-        self.samples = len(files)
-        
-        self.classes = ['STAR', 'GALAXY', 'QSO', 'Unknown']
-        
-        self.cls = len(self.classes)
+        train_files = glob.glob('/data2/cpb405/Training/*.fits')
         
         flux = []
         CLASS = []
         
-        self.wavelengths = 3800
+        self.wavelengths = 3500
         
-        for idx, file in enumerate(files):
+        for idx, file in enumerate(train_files):
             with fits.open(file) as hdulist:
                 flx = hdulist[0].data[0]
                 flx = flx[:self.wavelengths]
                 flx = flx/np.sum(flx)
                 CLS = hdulist[0].header['CLASS']
+                if MK and CLS=='STAR': CLS = hdulist[0].header['SUBCLASS'][0]
             flux.append(flx)
-            CLASS.append([0]*self.cls)
-            CLASS[-1][self.classes.index(CLS)] = 1
+            CLASS.append(CLS)
         
-        self.spectra = np.array(flux)
-        self.label = np.array(CLASS)
+        le = LabelEncoder()
+        CLAS = le.fit_transform(CLASS)
         
-        print('data read: ', time.time() - ti)
+        self.classes = le.inverse_transform(np.arange(np.amax(CLAS)+1))
+        
+        self.cls = len(self.classes)
+        
+        enc = OneHotEncoder(sparse=False)
+        CLA = enc.fit_transform(CLAS.reshape(-1,1))
+        
+        self.x_train = np.array(flux)
+        self.y_train = np.array(CLA)
+        
+        print('training data read: ', time.time() - ti, '\ntraining data contents:')
         
         for i in range(self.cls):
-            print(self.classes[i], ': ', np.sum([x[i] for x in CLASS]))
+            print(self.classes[i], ': ', np.sum([x[i] for x in CLA]))
+            
+        ti = time.time()
+        print('reading test data...')
+        
+        test_files = glob.glob('/data2/mrs493/DR1_3/*.fits')
+        
+        flux2 = []
+        CLASS2 = []
+        
+        for idx, file in enumerate(test_files):
+            with fits.open(file) as hdulist:
+                flx = hdulist[0].data[0]
+                flx = flx[:self.wavelengths]
+                flx = flx/np.sum(flx)
+                CLS = hdulist[0].header['CLASS']
+                if MK and CLS=='STAR': CLS = hdulist[0].header['SUBCLASS'][0]
+            flux2.append(flx)
+            CLASS2.append(CLS)
+                    
+        CLAS2 = le.transform(CLASS2)
+        CLA2 = enc.transform(CLAS2.reshape(-1,1))
+        
+        self.x_test = np.array(flux2)
+        self.y_test = np.array(CLA2)
+        
+        print('test data read: ', time.time() - ti, '\ntest data contents:')
+        
+        for i in range(self.cls):
+            print(self.classes[i], ': ', np.sum([x[i] for x in CLA2]))
         
     def train_lr(self, folder, train_steps, batch_frac, record):
         'create a linear regressor neural net and train it on the data'
@@ -288,10 +340,12 @@ class Neural_Network:
 
 if __name__ == "__main__":
     NN = Neural_Network()
-    samples = 10000
-    tts = 0.7
-    bf = 100./samples*tts
-    NN.make_spectra(samples, 1./8.)
-    NN.train_test_split(tts)
-    conv = {'folder':'test', 'train_steps':30000, 'batch_frac':bf, 'keep':0.5, 'record':100, 'pw0':3, 'pw1':10, 'pw2':10, 'width1':50, 'width2':50, 'inter1':50, 'inter2':100, 'inter3':1000}
+    #samples = 10000
+    #tts = 0.7
+    bf = 0.01
+    #NN.make_spectra(samples, 1./8.)
+    NN.get_LAMOST(False)
+    #NN.train_test_split(tts)
+    conv = {'folder':'test', 'train_steps':5000, 'batch_frac':bf, 'keep':0.5, 'record':100, 'pw0':4, 'pw1':10, 'pw2':10, 'width1':50, 'width2':50, 'inter1':32, 'inter2':64, 'inter3':1000}
     NN.train_conv(**conv)
+    

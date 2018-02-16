@@ -17,7 +17,7 @@ def plot_results(folder):
     
     #colours = ['purple', 'green', 'blue', 'pink', 'brown', 'red', 'orange', 'yellow', 'teal', 'light green']
     
-    colours = ['navy', 'royal blue', 'blue', 'cerulean', 'sea blue', 'turquoise', 'aqua', 'cyan', "robin's egg blue", 'pale blue']
+    colours = ['navy', 'royal blue', 'blue', 'cerulean', 'sea blue', 'turquoise', 'aqua', 'cyan', "robin's egg blue", 'pale blue', 'green', 'orange', 'red', 'yellow', 'blue']
     
     actual = conf.copy()
     
@@ -25,6 +25,7 @@ def plot_results(folder):
         actual[i+1] = actual[i+1] + actual[i]
     
     for i in range(cls)[::-1]:
+        print(i)
         bar = sns.barplot(classes, actual[i], ax = ax[0][0], color = sns.xkcd_rgb[colours[i]], label = classes[i])
     
     ax[0][0].set_title('Correct Classification of Spectra')
@@ -65,7 +66,7 @@ def plot_results(folder):
         
     wrong = total - correct
     
-    ax[1][1].pie([correct, wrong], labels = ['Correct', 'Incorrect'], autopct='%1.0f%%')
+    ax[1][1].pie([correct, wrong], labels = ['Correct', 'Incorrect'], autopct='%1.2f%%')
     ax[1][1].set_title('Overall Accuracy')
     ax[1][1].axis('equal')
     
