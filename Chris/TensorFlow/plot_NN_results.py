@@ -24,8 +24,8 @@ for idx in range(len(preds)):
 d = {'Labels':labs,'Predictions':true_false}
 df = pd.DataFrame(data=d)
 
-fig, ax = plt.subplots(2,2,figsize=(12,8))
-fig.suptitle("Convolutional Neural Net",y=0.98,fontsize=24)
+fig, ax = plt.subplots(2,2,figsize=(13,10))
+fig.suptitle("Convolutional Neural Net",y=0.96,fontsize=24)
 
 sns.factorplot(x='Labels', hue='Predictions', data=df, size=6, kind='count', palette='muted', ax=ax[0][0])
 ax[0][0].set_xlabel("Class")
@@ -38,10 +38,10 @@ ax[0][1].set_ylabel("Accuracy")
 ax[0][1].set_title("Accuracy with Training Batch")
 #plt.savefig("AccPlotnoNoise")
 
-ax[1][0].pie([true,false],labels=["Correct","Incorrect"])
+ax[1][0].pie([true,false],labels=["Correct","Incorrect"], autopct="%1.2f%%")
 ax[1][0].axis("equal")
 ax[1][0].set_title("Total Number of Correct/Incorrect Predictions")
 
 plt.tight_layout()
-plt.savefig("MKNoiseResults")
-#plt.show()
+#plt.savefig("MKNoiseResults")
+plt.show()

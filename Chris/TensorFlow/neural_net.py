@@ -19,7 +19,11 @@ class Neural_Net():
             with fits.open(file) as hdulist:
                 self.flux.append((hdulist[0].data)[0])
                 self.scls.append(hdulist[0].header['CLASS'])
+        self.flux = np.array(self.flux)
+        print(self.flux)
+        self.scls = np.array(self.scls)
         self.cls = self.onehot(self.scls)
+        print("LAMOST data successfully read in...")
         
     def create_artificial_data(self,nStars,nGalaxies,plot=True):
         ''' Creates a set of artificial stars (modelled as blackbodies) and galaxies (modelled as straight lines) '''
@@ -53,40 +57,13 @@ class Neural_Net():
         self.flux = np.concatenate((fStar,fGalaxy))
         self.scls = np.concatenate((cStar,cGalaxy))
         self.cls = self.onehot(self.scls)
-        
-    def predict_class(self):
-        ''' Sets up a neural net with one layer using a simple linear estimator '''
-        x = tf.placeholder(tf.float32, [None, len(self.flux[0])])
-        
-        W = tf.Variable(tf.truncated_normal([len(self.flux[0]),len(self.cls[0])],stddev=1./np.sqrt(len(self.flux[0]))), dtype = tf.float32)
-        b = tf.Variable(np.zeros(len(self.cls[0])), dtype = tf.float32)
-        
-        y = tf.nn.softmax(tf.matmul(x, W) + b)      
-        y_ = tf.placeholder(tf.float32, [None, len(self.cls[0])])
-        
-        x_train, x_test, y_train, y_test = train_test_split(self.flux, self.cls, test_size=0.5)
-
-        print(y_test)
-        cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
-        train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)           
-        
-        correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))        
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32)) 
-        
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            for i in range(10000):
-                batch = np.random.random(len(x_train)) > 0.01
-                if i % 100 == 0:
-                    train_accuracy = accuracy.eval(feed_dict={x: x_test, y_: y_test})
-                    print('step %d, training accuracy %g' % (i, train_accuracy))
-                sess.run(train_step, feed_dict={x: x_train[batch], y_: y_train[batch]})
-                        
-            print(sess.run(accuracy, feed_dict={x: x_test, y_: y_test}))
+        print("Artificial data created...")
     
-    def convolution(self):
+    def convolution(self, pooling=False):
         ''' Sets up a 1D convolutional multi-layered neural net '''
         x_train, x_test, y_train, y_test, labels_train, self.labels = train_test_split(self.flux, self.cls, self.scls, test_size=0.5)
+        
+        pool_width = 1
         
         x = tf.placeholder(tf.float32, [None, len(self.flux[0])])
         x2 = tf.reshape(x,[-1,len(self.flux[0]),1])
@@ -94,26 +71,27 @@ class Neural_Net():
         y_ = tf.placeholder(tf.float32, [None, len(self.cls[0])])
         
         W_conv1 = self.weight_variable([500,1,32])
-        b_conv1 = self.bias_variable([32])
+        b_conv1 = self.bias_variable([32])  
         
-        h_conv1 = tf.nn.relu(self.conv1d(x2, W_conv1) + b_conv1)
-        """
-        W_conv2 = self.weight_variable([500,32,64])
-        b_conv2 = self.bias_variable([64])
+        if pooling:
+            pool_width = 4
+            x2_pool = self.max_pool(x2, pool_width)
+            h_conv1 = tf.nn.relu(self.conv1d(x2_pool, W_conv1) + b_conv1)
+        else: 
+            h_conv1 = tf.nn.relu(self.conv1d(x2, W_conv1) + b_conv1)
         
-        h_conv2 = tf.nn.relu(self.ctensorflow plot predictions from convolutiononv1d(h_conv1, W_conv2) + b_conv2)
-        """
-        W_fc1 = self.weight_variable([len(self.flux[0]) * 32, 1024])
-        b_fc1 = self.bias_variable([1024])
-        
-        h_pool2_flat = tf.reshape(h_conv1, [-1, len(self.flux[0]) * 32])
+
+        h_pool2_flat = tf.reshape(h_conv1, [-1, len(self.flux[0]) * int(32/pool_width)])
+        W_fc1 = self.weight_variable([len(self.flux[0]) * int(32/pool_width), 1024])
+            
+        b_fc1 = self.bias_variable([1024]) 
         h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
         
         keep_prob = tf.placeholder(tf.float32)
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
         
-        W_fc2 = self.weight_variable([1024, 7])
-        b_fc2 = self.bias_variable([7])
+        W_fc2 = self.weight_variable([1024, len(self.cls[0])])
+        b_fc2 = self.bias_variable([len(self.cls[0])])
 
         y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
         
@@ -188,13 +166,16 @@ class Neural_Net():
     def conv1d(self, x, W):
         ''' Performs 1D convolution '''
         return tf.nn.conv1d(x, W, 1, 'SAME')
+    
+    def max_pool(self, x, width):
+        return tf.nn.pool(x, [width], 'MAX', 'SAME', strides=[width])
         
 if __name__ == "__main__":
-    sdir = '/data2/mrs493/DR1_3/'
+    sdir = '/data2/mrs493/DR1_2/'
     files = glob.glob(sdir + '*.fits')
     
     NN = Neural_Net()
     NN.read_lamost_data(files)
     #NN.create_artificial_data(1000,100,False)
-    NN.convolution()
-    NN.save()
+    NN.convolution(True)
+    #NN.save()
