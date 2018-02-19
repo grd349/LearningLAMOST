@@ -1,6 +1,5 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-#import matplotlib.pyplot as plt
 from astropy.io import fits
 import glob
 import numpy as np
@@ -8,29 +7,49 @@ import tensorflow as tf
 
 class Neural_Net():
     def __init__(self):
+        pass
+    
+    def read_lamost_data(self,sfile,train=True, MK = False):
+        ''' Reads in the flux and classes from LAMOST fits files & converts classes to one-hot vectors '''
+        print("Reading in LAMOST data...")
+        flux = []
+        scls = []
+        self.wav = 3500
+        for idx, file in enumerate(sfile):
+            with fits.open(file) as hdulist:
+                f = hdulist[0].data[0]
+                f = f[:self.wav]
+                f = f/np.sum(f)
+                s = hdulist[0].header['CLASS']
+                if MK and s == 'STAR':
+                    s = hdulist[0].header['SUBCLASS'][0]
+            flux.append(f)
+            scls.append(s)
+        flux = np.array(flux)
+        scls = np.array(scls)
+        cls = self.onehot(scls,train)
+
+        if train:
+            self.fluxTR = flux
+            self.clsTR = cls
+            self.sclsTR = scls
+            print("Training set successfully read in.")
+        else:
+            self.fluxTE = flux
+            self.clsTE = cls
+            self.sclsTE = scls
+            print("Test set successfully read in.")
+        
+    def create_artificial_data(self,nStars,nGalaxies):
+        ''' Creates a set of artificial stars (modelled as blackbodies) and galaxies (modelled as straight lines) '''
+        print("Generating artificial data...")
         self.MKClasses = ['B-type','A-type','F-type','G-type','K-type','M-type']
         self.MKTemps = [10000,7500,6000,5200,3700,2400]
-    
-    def read_lamost_data(self,files):
-        ''' Reads in the flux and classes from LAMOST fits files & converts classes to one-hot vectors '''
-        self.flux = []
-        self.scls = []
-        for idx, file in enumerate(files):
-            with fits.open(file) as hdulist:
-                self.flux.append((hdulist[0].data)[0])
-                self.scls.append(hdulist[0].header['CLASS'])
-        self.flux = np.array(self.flux)
-        print(self.flux)
-        self.scls = np.array(self.scls)
-        self.cls = self.onehot(self.scls)
-        print("LAMOST data successfully read in...")
-        
-    def create_artificial_data(self,nStars,nGalaxies,plot=True):
-        ''' Creates a set of artificial stars (modelled as blackbodies) and galaxies (modelled as straight lines) '''
         fStar = []
         cStar = []
+        self.wav = 1000
         temps = np.random.uniform(2400,15000,nStars)
-        wavelength = np.linspace(4000,9000,1000)
+        wavelength = np.linspace(4000,9000,self.wav)
         for idx in range(nStars):
             flux, cls = self.blackbody(temps[idx], wavelength)
             fStar.append(flux)
@@ -45,44 +64,37 @@ class Neural_Net():
             cGalaxy.append('Galaxy')
         fGalaxy = np.array(fGalaxy)
         cGalaxy = np.array(cGalaxy)
-        
-        if plot == True:
-            for idx in range(10):
-                fig, ax = plt.subplots()
-                ax.plot(wavelength,fStar[idx])
-                ax.plot(wavelength,fGalaxy[idx])
-                ax.set_xlabel("Wavelength / Angstroms")
-                ax.set_ylabel("Flux")
 
         self.flux = np.concatenate((fStar,fGalaxy))
         self.scls = np.concatenate((cStar,cGalaxy))
         self.cls = self.onehot(self.scls)
-        print("Artificial data created...")
+
+        self.fluxTR, self.fluxTE, self.clsTR, self.clsTE, self.sclsTR, self.sclsTE = train_test_split(self.flux, self.cls, self.scls, test_size=0.5)
+        print("Artificial data created.")
     
     def convolution(self, pooling=False):
         ''' Sets up a 1D convolutional multi-layered neural net '''
-        x_train, x_test, y_train, y_test, labels_train, self.labels = train_test_split(self.flux, self.cls, self.scls, test_size=0.5)
+        print("Performing 1D convolution...")
         
         pool_width = 1
         
-        x = tf.placeholder(tf.float32, [None, len(self.flux[0])])
-        x2 = tf.reshape(x,[-1,len(self.flux[0]),1])
+        x = tf.placeholder(tf.float32, [None, self.wav])
+        x2 = tf.reshape(x,[-1,self.wav,1])
          
-        y_ = tf.placeholder(tf.float32, [None, len(self.cls[0])])
+        y_ = tf.placeholder(tf.float32, [None, len(self.clsTR[0])])
         
         W_conv1 = self.weight_variable([500,1,32])
         b_conv1 = self.bias_variable([32])  
         
         if pooling:
-            pool_width = 4
+            pool_width = 16
             x2_pool = self.max_pool(x2, pool_width)
             h_conv1 = tf.nn.relu(self.conv1d(x2_pool, W_conv1) + b_conv1)
         else: 
             h_conv1 = tf.nn.relu(self.conv1d(x2, W_conv1) + b_conv1)
         
-
-        h_pool2_flat = tf.reshape(h_conv1, [-1, len(self.flux[0]) * int(32/pool_width)])
-        W_fc1 = self.weight_variable([len(self.flux[0]) * int(32/pool_width), 1024])
+        h_pool2_flat = tf.reshape(h_conv1, [-1, int(np.ceil(self.wav/pool_width)) * 32])
+        W_fc1 = self.weight_variable([int(np.ceil(self.wav/pool_width)) * 32, 1024])
             
         b_fc1 = self.bias_variable([1024]) 
         h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
@@ -90,8 +102,8 @@ class Neural_Net():
         keep_prob = tf.placeholder(tf.float32)
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
         
-        W_fc2 = self.weight_variable([1024, len(self.cls[0])])
-        b_fc2 = self.bias_variable([len(self.cls[0])])
+        W_fc2 = self.weight_variable([1024, len(self.clsTR[0])])
+        b_fc2 = self.bias_variable([len(self.clsTR[0])])
 
         y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
         
@@ -103,24 +115,30 @@ class Neural_Net():
         
         self.accuracy = []
         self.batch = []
+        
+        confusion = tf.confusion_matrix(tf.argmax(y_conv,1), tf.argmax(y_,1))
+        
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             for i in range(2500):
-                batch = np.random.random(len(x_train)) > 0.01
+                batch = np.random.random(len(self.fluxTR)) > 0.01
                 if i % 10 == 0:
-                    train_accuracy = accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
+                    train_accuracy = accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
                     print('step %d, training accuracy %g' % (i, train_accuracy))
                     self.accuracy.append(train_accuracy)
                     self.batch.append(i)
-                train_step.run(feed_dict={x: x_train[batch], y_: y_train[batch], keep_prob: 0.5})         
-            print('test accuracy %g' % accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0}))
-            self.correct_pred = correct_prediction.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
+                train_step.run(feed_dict={x: self.fluxTR[batch], y_: self.clsTR[batch], keep_prob: 0.5})         
+            self.conf = sess.run(confusion, feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
+            print('test accuracy %g' % accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0}))
+            self.correct_pred = correct_prediction.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
     
-    def save(self):
+    def save(self,test):
         ''' Saves final results from neural net into csv files '''
-        np.savetxt('AccBatch.csv', np.column_stack((self.batch,self.accuracy)), delimiter=',')
-        np.savetxt('Predictions.csv', self.correct_pred, delimiter=',')
-        np.savetxt('Labels.csv', self.labels, delimiter=',', fmt="%s")
+        print("Saving results...")
+        np.savetxt('Files/AccBatch' + test + '.csv', np.column_stack((self.batch,self.accuracy)), delimiter=',')
+        np.savetxt('Files/Predictions' + test + '.csv', self.correct_pred, delimiter=',')
+        np.savetxt('Files/Labels' + test + '.csv', self.sclsTE, delimiter=',', fmt='%s')
+        np.savetxt('Files/Confusion' + test + '.csv', self.conf, fmt='%i', delimiter=',')
         
     def blackbody(self, T, wavelength):
         ''' Models an ideal blackbody curve of a given temperature '''
@@ -144,13 +162,18 @@ class Neural_Net():
             E[idx] = E[idx] + np.random.normal(0,np.sqrt(E[idx]/1000))
         return E/np.sum(E)
     
-    def onehot(self, classes):
+    def onehot(self,classes,train=True):
         ''' Encodes a list of descriptive labels as one hot vectors '''
-        label_encoder = LabelEncoder()
-        int_encoded = label_encoder.fit_transform(classes)
-        onehot_encoder = OneHotEncoder(sparse=False)
-        int_encoded = int_encoded.reshape(len(int_encoded), 1)
-        onehot_encoded = onehot_encoder.fit_transform(int_encoded)
+        if train:
+            self.label_encoder = LabelEncoder()
+            int_encoded = self.label_encoder.fit_transform(classes)
+            self.onehot_encoder = OneHotEncoder(sparse=False)
+            int_encoded = int_encoded.reshape(len(int_encoded), 1)
+            onehot_encoded = self.onehot_encoder.fit_transform(int_encoded)
+        else:
+            int_encoded = self.label_encoder.transform(classes)
+            int_encoded = int_encoded.reshape(len(int_encoded), 1)
+            onehot_encoded = self.onehot_encoder.transform(int_encoded)
         return onehot_encoded
     
     def weight_variable(self, shape):
@@ -168,14 +191,19 @@ class Neural_Net():
         return tf.nn.conv1d(x, W, 1, 'SAME')
     
     def max_pool(self, x, width):
+        ''' Pools the data, reducing the dimensions by a factor of "width" '''
         return tf.nn.pool(x, [width], 'MAX', 'SAME', strides=[width])
         
 if __name__ == "__main__":
-    sdir = '/data2/mrs493/DR1_2/'
-    files = glob.glob(sdir + '*.fits')
+    traindir = '/data2/cpb405/Training/'
+    ftrain = glob.glob(traindir + '*.fits')
+    
+    testdir = '/data2/mrs493/DR1_3/'
+    ftest = glob.glob(testdir + '*.fits')
     
     NN = Neural_Net()
-    NN.read_lamost_data(files)
-    #NN.create_artificial_data(1000,100,False)
+    NN.read_lamost_data(ftrain)
+    NN.read_lamost_data(ftest,False)
+    #NN.create_artificial_data(1000,100)
     NN.convolution(True)
-    #NN.save()
+    NN.save('DR1_3')
