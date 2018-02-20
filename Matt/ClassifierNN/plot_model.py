@@ -25,7 +25,6 @@ def plot_results(folder):
         actual[i+1] = actual[i+1] + actual[i]
     
     for i in range(cls)[::-1]:
-        print(i)
         bar = sns.barplot(classes, actual[i], ax = ax[0][0], color = sns.xkcd_rgb[colours[i]], label = classes[i])
     
     ax[0][0].set_title('Correct Classification of Spectra')

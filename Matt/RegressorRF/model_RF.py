@@ -13,6 +13,8 @@ from sklearn.preprocessing import Imputer, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 
+import time
+
 bright = 1000
     #number/fraction of stars to include, starting at brightest (set to False to include all)
 
@@ -62,6 +64,7 @@ parameter_grid = [{'n_estimators':[20,40,60,80,100],'max_depth':[1000,2000,3000,
 parameters = ['teff', 'logg', 'feh']
 
 for parameter in parameters:
+    t = time.time()
     print(parameter)
     y_train = train[parameter].tolist()
     y_test = test[parameter].tolist()
@@ -143,5 +146,6 @@ for parameter in parameters:
     plt.tight_layout()
     if bright: plt.savefig('Figures/' + parameter + 'Model' + str(bright) + 'B.pdf')
     else: plt.savefig('Figures/' + parameter + 'Model.pdf')
+    print(time.time() - t)
 
 plt.show()
