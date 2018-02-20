@@ -3,12 +3,15 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-accbatch = np.genfromtxt('Files/AccBatch1.csv', delimiter=',')
+accbatch = np.genfromtxt('Files/AccBatchDR2.csv', delimiter=',')
 batch = accbatch[:,0]
 accuracy = accbatch[:,1]
 
-labs = np.genfromtxt('Files/Labels1.csv', delimiter=',', dtype=str)
-preds = np.genfromtxt('Files/Predictions1.csv', delimiter=',')
+labs = np.genfromtxt('Files/LabelsDR1_2.csv', delimiter=',', dtype=str)
+preds = np.genfromtxt('Files/PredictionsDR1_2.csv', delimiter=',')
+conf = np.genfromtxt('Files/ConfusionDR1_2.csv', delimiter=',')
+
+print(conf)
 
 true_false = []
 true = 0
@@ -23,7 +26,8 @@ for idx in range(len(preds)):
 
 d = {'Labels':labs,'Predictions':true_false}
 df = pd.DataFrame(data=d)
-
+ 
+    
 fig, ax = plt.subplots(2,2,figsize=(13,10))
 fig.suptitle("Convolutional Neural Net",y=0.96,fontsize=24)
 
@@ -42,6 +46,12 @@ ax[1][0].pie([true,false],labels=["Correct","Incorrect"], autopct="%1.2f%%")
 ax[1][0].axis("equal")
 ax[1][0].set_title("Total Number of Correct/Incorrect Predictions")
 
+classes = ["GALAXY","QSO","STAR","Unknown"]
+fig, ax_inner = plt.subplots(2,2)
+ax[1][1] = fig
+for i,ax_i in enumerate(ax_inner.flatten()):
+    ax_i.pie(conf.transpose()[i], autopct="%1.2f%%")
+    ax_i.axis('equal')
 plt.tight_layout()
 #plt.savefig("MKNoiseResults")
 plt.show()
