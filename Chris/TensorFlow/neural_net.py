@@ -2,6 +2,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from astropy.io import fits
 import glob
+import time
 import numpy as np
 import tensorflow as tf
 
@@ -9,7 +10,7 @@ class Neural_Net():
     def __init__(self):
         pass
     
-    def read_lamost_data(self,sfile,train=True, MK = False):
+    def read_lamost_data(self,sfile,MK = True):
         ''' Reads in the flux and classes from LAMOST fits files & converts classes to one-hot vectors '''
         print("Reading in LAMOST data...")
         flux = []
@@ -25,20 +26,21 @@ class Neural_Net():
                     s = hdulist[0].header['SUBCLASS'][0]
             flux.append(f)
             scls.append(s)
+            
+        class_dict = {}
+        for s in scls:
+            if s in class_dict:
+                class_dict[s] += 1
+            else:
+                class_dict[s] = 1
+        print(class_dict)
+        
         flux = np.array(flux)
         scls = np.array(scls)
-        cls = self.onehot(scls,train)
-
-        if train:
-            self.fluxTR = flux
-            self.clsTR = cls
-            self.sclsTR = scls
-            print("Training set successfully read in.")
-        else:
-            self.fluxTE = flux
-            self.clsTE = cls
-            self.sclsTE = scls
-            print("Test set successfully read in.")
+        cls = self.onehot(scls)
+        
+        self.fluxTR, self.fluxTE, self.clsTR, self.clsTE = train_test_split(flux, cls, test_size=0.5)
+        print("LAMOST data successfully read in...")
         
     def create_artificial_data(self,nStars,nGalaxies):
         ''' Creates a set of artificial stars (modelled as blackbodies) and galaxies (modelled as straight lines) '''
@@ -69,44 +71,41 @@ class Neural_Net():
         self.scls = np.concatenate((cStar,cGalaxy))
         self.cls = self.onehot(self.scls)
 
-        self.fluxTR, self.fluxTE, self.clsTR, self.clsTE, self.sclsTR, self.sclsTE = train_test_split(self.flux, self.cls, self.scls, test_size=0.5)
+        self.fluxTR, self.fluxTE, self.clsTR, self.clsTE = train_test_split(self.flux, self.cls, test_size=0.5)
         print("Artificial data created.")
     
-    def convolution(self, pooling=False):
+    def convolution(self, pool_width=32):
         ''' Sets up a 1D convolutional multi-layered neural net '''
         print("Performing 1D convolution...")
         
-        pool_width = 1
-        
         x = tf.placeholder(tf.float32, [None, self.wav])
-        x2 = tf.reshape(x,[-1,self.wav,1])
-         
+        x2 = tf.reshape(x,[-1,self.wav,1])  
         y_ = tf.placeholder(tf.float32, [None, len(self.clsTR[0])])
         
+        ''' Convolutional Layer with Pooling before and after '''
         W_conv1 = self.weight_variable([500,1,32])
-        b_conv1 = self.bias_variable([32])  
-        
-        if pooling:
-            pool_width = 16
-            x2_pool = self.max_pool(x2, pool_width)
-            h_conv1 = tf.nn.relu(self.conv1d(x2_pool, W_conv1) + b_conv1)
-        else: 
-            h_conv1 = tf.nn.relu(self.conv1d(x2, W_conv1) + b_conv1)
-        
-        h_pool2_flat = tf.reshape(h_conv1, [-1, int(np.ceil(self.wav/pool_width)) * 32])
-        W_fc1 = self.weight_variable([int(np.ceil(self.wav/pool_width)) * 32, 1024])
-            
-        b_fc1 = self.bias_variable([1024]) 
+        b_conv1 = self.bias_variable([32])
+        h_pool1 = self.max_pool(x2, pool_width)
+        h_conv1 = tf.nn.relu(self.conv1d(h_pool1, W_conv1) + b_conv1)
+        h_pool2 = self.max_pool(h_conv1, pool_width*2)
+      
+        ''' Densely Connected Layer '''
+        W_fc1 = self.weight_variable([int(np.ceil(self.wav/(pool_width))/np.ceil(self.wav/(pool_width*2))) * 32, 1024])         
+        b_fc1 = self.bias_variable([1024])
+        h_pool2_flat = tf.reshape(h_pool2, [-1, int(np.ceil(self.wav/(pool_width))/np.ceil(self.wav/(pool_width*2))) * 32])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
         
+        ''' Dropout (to reduce overfitting) '''
         keep_prob = tf.placeholder(tf.float32)
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
         
+        ''' Readout Layer '''
         W_fc2 = self.weight_variable([1024, len(self.clsTR[0])])
         b_fc2 = self.bias_variable([len(self.clsTR[0])])
 
         y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
         
+        ''' Train and Evaluate Model '''
         cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
         train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
        
@@ -114,31 +113,29 @@ class Neural_Net():
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         
         self.accuracy = []
-        self.batch = []
         
         confusion = tf.confusion_matrix(tf.argmax(y_conv,1), tf.argmax(y_,1))
         
         with tf.Session() as sess:
+            t = time.time()
             sess.run(tf.global_variables_initializer())
-            for i in range(2500):
+            for i in range(5000):
                 batch = np.random.random(len(self.fluxTR)) > 0.01
                 if i % 10 == 0:
                     train_accuracy = accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
-                    print('step %d, training accuracy %g' % (i, train_accuracy))
+                    print('Step %d, Training Accuracy %g' % (i, train_accuracy))
                     self.accuracy.append(train_accuracy)
-                    self.batch.append(i)
                 train_step.run(feed_dict={x: self.fluxTR[batch], y_: self.clsTR[batch], keep_prob: 0.5})         
             self.conf = sess.run(confusion, feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
-            print('test accuracy %g' % accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0}))
-            self.correct_pred = correct_prediction.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
+            print('Test Accuracy %g' % accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0}))
+            print('Time Taken: ', time.time() - t, 'seconds')
     
-    def save(self,test):
+    def save(self,folder):
         ''' Saves final results from neural net into csv files '''
         print("Saving results...")
-        np.savetxt('Files/AccBatch' + test + '.csv', np.column_stack((self.batch,self.accuracy)), delimiter=',')
-        np.savetxt('Files/Predictions' + test + '.csv', self.correct_pred, delimiter=',')
-        np.savetxt('Files/Labels' + test + '.csv', self.sclsTE, delimiter=',', fmt='%s')
-        np.savetxt('Files/Confusion' + test + '.csv', self.conf, fmt='%i', delimiter=',')
+        np.savetxt('Files/' + folder + '/Accuracy.csv', np.column_stack(self.accuracy), delimiter=',')
+        np.savetxt('Files/' + folder + '/Confusion.csv', self.conf, fmt='%i', delimiter=',')
+        np.savetxt('Files/' + folder + '/Labels.csv', self.labels, fmt='%s', delimiter=',')
         
     def blackbody(self, T, wavelength):
         ''' Models an ideal blackbody curve of a given temperature '''
@@ -162,18 +159,14 @@ class Neural_Net():
             E[idx] = E[idx] + np.random.normal(0,np.sqrt(E[idx]/1000))
         return E/np.sum(E)
     
-    def onehot(self,classes,train=True):
+    def onehot(self,classes):
         ''' Encodes a list of descriptive labels as one hot vectors '''
-        if train:
-            self.label_encoder = LabelEncoder()
-            int_encoded = self.label_encoder.fit_transform(classes)
-            self.onehot_encoder = OneHotEncoder(sparse=False)
-            int_encoded = int_encoded.reshape(len(int_encoded), 1)
-            onehot_encoded = self.onehot_encoder.fit_transform(int_encoded)
-        else:
-            int_encoded = self.label_encoder.transform(classes)
-            int_encoded = int_encoded.reshape(len(int_encoded), 1)
-            onehot_encoded = self.onehot_encoder.transform(int_encoded)
+        label_encoder = LabelEncoder()
+        int_encoded = label_encoder.fit_transform(classes)
+        self.labels = label_encoder.inverse_transform(np.arange(np.amax(int_encoded)+1))
+        onehot_encoder = OneHotEncoder(sparse=False)
+        int_encoded = int_encoded.reshape(len(int_encoded), 1)
+        onehot_encoded = onehot_encoder.fit_transform(int_encoded)
         return onehot_encoded
     
     def weight_variable(self, shape):
@@ -195,15 +188,10 @@ class Neural_Net():
         return tf.nn.pool(x, [width], 'MAX', 'SAME', strides=[width])
         
 if __name__ == "__main__":
-    traindir = '/data2/cpb405/Training/'
-    ftrain = glob.glob(traindir + '*.fits')
-    
-    testdir = '/data2/mrs493/DR1_3/'
-    ftest = glob.glob(testdir + '*.fits')
+    sdir = '/data2/cpb405/Training/'
+    files = glob.glob(sdir + '*.fits')
     
     NN = Neural_Net()
-    NN.read_lamost_data(ftrain)
-    NN.read_lamost_data(ftest,False)
-    #NN.create_artificial_data(1000,100)
-    NN.convolution(True)
-    NN.save('DR1_3')
+    NN.read_lamost_data(files)
+    NN.convolution()
+    NN.save('DR3_2')
