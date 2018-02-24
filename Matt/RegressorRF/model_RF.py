@@ -14,6 +14,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 
 import time
+import matplotlib
+
+matplotlib.rcParams.update({'font.size': 22})
 
 bright = 1000
     #number/fraction of stars to include, starting at brightest (set to False to include all)
@@ -95,7 +98,7 @@ for parameter in parameters:
     
     fig, ax = plt.subplots(2,2, figsize=(18,12))
     
-    fig.suptitle('Random Forest Regressor - ' + parameter + '\nn_estimators:{}, max_depth:{}, max_features:{}'.format(hyp['n_estimators'], hyp['max_depth'], hyp['max_features']))
+    #fig.suptitle('Random Forest Regressor - ' + parameter + '\nn_estimators:{}, max_depth:{}, max_features:{}'.format(hyp['n_estimators'], hyp['max_depth'], hyp['max_features']))
         
     ax[0][0].scatter(y_test, final)
     ax[0][0].plot(ends, ends, ls = ':', color = 'red')
@@ -108,7 +111,7 @@ for parameter in parameters:
     
     sns.kdeplot(error, ax=ax[0][1], shade=True)
     ax[0][1].set_xlabel('Absolute Error')
-    ax[0][1].set_ylabel('Fraction of Points with Error')
+    ax[0][1].set_ylabel('Fraction of Points\nwith Error')
     ax[0][1].set_title('KDE of Absolute Error')
         #plot the univariant kernel density estimatorplt.axvline(letters[letter][0])
     

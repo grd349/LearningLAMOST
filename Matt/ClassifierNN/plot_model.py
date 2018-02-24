@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
@@ -63,13 +64,35 @@ def plot_results(folder):
         correct += conf[i][i]
         total += np.sum(conf[i])
         
+    '''
     wrong = total - correct
     
     ax[1][1].pie([correct, wrong], labels = ['Correct', 'Incorrect'], autopct='%1.2f%%')
     ax[1][1].set_title('Overall Accuracy')
     ax[1][1].axis('equal')
+    '''   
+    
+    actual = np.array([classes for i in range(cls)])
+    
+    model = actual.transpose().flatten()
+    actual = actual.flatten()
+    
+    heat = {'Model':model, 'Actual':actual, 'Counts':conf.flatten()}
+    
+    hot = pd.DataFrame(data = heat)
+    
+    hot = hot.pivot('Model', 'Actual', 'Counts')
+    
+    sns.heatmap(hot, cmap = 'Blues', annot=True, fmt=".0f", ax = ax[1][1])
+    ax[1][1].set_xlabel('Actual Classification')
+    ax[1][1].set_ylabel('Model Classification')
+    
+    
     
     plt.savefig('Files/' + folder + '/results_' + folder + '.pdf')
+    #plt.show()
+    
+    
     plt.show()
 
 #possible additional/alternative plots

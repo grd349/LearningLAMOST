@@ -144,13 +144,60 @@ class Neural_Network:
         
         print('data generated: ', time.time() - ti)
 
-    def get_LAMOST(self, MK = True):
+    def get_LAMOST(self, Ldir, MK = True):
+        'read in the spectra from the LAMOST data'
+        
+        ti = time.time()
+        print('reading data...')
+        
+        train_files = glob.glob(Ldir)
+        
+        flux = []
+        CLASS = []
+        
+        self.wavelengths = 3500
+        
+        for idx, file in enumerate(train_files):
+            with fits.open(file) as hdulist:
+                flx = hdulist[0].data[0]
+                flx = flx[:self.wavelengths]
+                flx = flx/np.sum(flx)
+                CLS = hdulist[0].header['CLASS']
+                if MK and CLS=='STAR': CLS = hdulist[0].header['SUBCLASS'][0]
+            flux.append(flx)
+            CLASS.append(CLS)
+        
+        le = LabelEncoder()
+        CLAS = le.fit_transform(CLASS)
+        
+        self.classes = le.inverse_transform(np.arange(np.amax(CLAS)+1))
+        
+        self.cls = len(self.classes)
+        
+        enc = OneHotEncoder(sparse=False)
+        CLA = enc.fit_transform(CLAS.reshape(-1,1))
+        
+        ###        
+        
+        self.samples = len(flux)        
+        
+        self.spectra = np.array(flux)
+        self.label = np.array(CLA)
+        
+        print('data read: ', time.time() - ti, '\ndata contents:')
+        
+        for i in range(self.cls):
+            print(self.classes[i], ': ', np.sum([x[i] for x in CLA]))
+            
+        ti = time.time()
+        
+    def get_LAMOST_tt(self, train_dir, test_dir, MK = False):
         'read in the spectra from the LAMOST data'
         
         ti = time.time()
         print('reading training data...')
         
-        train_files = glob.glob('/data2/cpb405/Training/*.fits')
+        train_files = glob.glob(train_dir)
         
         flux = []
         CLASS = []
@@ -186,9 +233,10 @@ class Neural_Network:
             print(self.classes[i], ': ', np.sum([x[i] for x in CLA]))
             
         ti = time.time()
+        
         print('reading test data...')
         
-        test_files = glob.glob('/data2/mrs493/DR1_3/*.fits')
+        test_files = glob.glob(test_dir)
         
         flux2 = []
         CLASS2 = []
@@ -240,7 +288,7 @@ class Neural_Network:
             sess.run(tf.global_variables_initializer())
             for i in range(train_steps):
                 batch_x, batch_y = self.batch(batch_frac)
-                if i%record == 0:
+                if i%record == 0 and i != 0:
                     train_accuracy = sess.run(accuracy, feed_dict={x: self.x_test, y_: self.y_test})
                     print('step {} training accuracy {}'.format(i, train_accuracy))
                     accuracies.append([i, train_accuracy])
@@ -324,7 +372,7 @@ class Neural_Network:
             sess.run(tf.global_variables_initializer())
             for i in range(train_steps):
                 batch_x, batch_y = self.batch(batch_frac)
-                if i%record == 0:
+                if i%record == 0 and i != 0:
                     train_accuracy = sess.run(accuracy, feed_dict={x: self.x_test, y_: self.y_test, keep_prob: 1.0})
                     print('step {} training accuracy {}'.format(i, train_accuracy))
                     accuracies.append([i, train_accuracy])
@@ -339,13 +387,17 @@ class Neural_Network:
         plot_results(folder)
 
 if __name__ == "__main__":
+    train = '/data2/cpb405/Training/*.fits'
+    test = '/data2/mrs493/DR1_3/*.fits'
     NN = Neural_Network()
     #samples = 10000
-    #tts = 0.7
+    tts = 0.5
     bf = 0.01
     #NN.make_spectra(samples, 1./8.)
-    NN.get_LAMOST(False)
-    #NN.train_test_split(tts)
-    conv = {'folder':'test', 'train_steps':5000, 'batch_frac':bf, 'keep':0.5, 'record':100, 'pw0':4, 'pw1':10, 'pw2':10, 'width1':50, 'width2':50, 'inter1':32, 'inter2':64, 'inter3':1000}
+    #NN.get_LAMOST_tt(train, test, True)    
+    NN.get_LAMOST(train)
+    NN.train_test_split(tts)
+    ##conv = {'folder':'test', 'train_steps':5000, 'batch_frac':bf, 'keep':0.5, 'record':100, 'pw0':4, 'pw1':10, 'pw2':10, 'width1':50, 'width2':50, 'inter1':32, 'inter2':64, 'inter3':1000}
+    conv = {'folder':'test', 'train_steps':10000, 'batch_frac':bf, 'keep':0.5, 'record':100, 'pw0':4, 'pw1':10, 'pw2':10, 'width1':50, 'width2':50, 'inter1':32, 'inter2':64, 'inter3':1000}
     NN.train_conv(**conv)
     
