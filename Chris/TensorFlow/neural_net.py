@@ -74,35 +74,49 @@ class Neural_Net():
         self.fluxTR, self.fluxTE, self.clsTR, self.clsTE = train_test_split(self.flux, self.cls, test_size=0.5)
         print("Artificial data created.")
     
-    def convolution(self, pool_width=32):
+    def convolution(self, steps, pool_width=15):
         ''' Sets up a 1D convolutional multi-layered neural net '''
         print("Performing 1D convolution...")
-        
+        n_classes = len(self.clsTR[0])
         x = tf.placeholder(tf.float32, [None, self.wav])
-        x2 = tf.reshape(x,[-1,self.wav,1])  
-        y_ = tf.placeholder(tf.float32, [None, len(self.clsTR[0])])
+        x_ = tf.reshape(x,[-1,self.wav,1])  
+        y_ = tf.placeholder(tf.float32, [None, n_classes])
         
-        ''' Convolutional Layer with Pooling before and after '''
-        W_conv1 = self.weight_variable([500,1,32])
+        ''' First Pooling Layer '''
+        h_pool1 = self.max_pool(x_, pool_width)
+        
+        ''' First Convolutional Layer '''
+        W_conv1 = self.weight_variable([50,1,32])
         b_conv1 = self.bias_variable([32])
-        h_pool1 = self.max_pool(x2, pool_width)
         h_conv1 = tf.nn.relu(self.conv1d(h_pool1, W_conv1) + b_conv1)
-        h_pool2 = self.max_pool(h_conv1, pool_width*2)
+        
+        ''' Second Pooling Layer '''
+        h_pool2 = self.max_pool(h_conv1, pool_width)
+        
+        ''' Second Convolutional Layer '''
+        W_conv2 = self.weight_variable([50,32,64])
+        b_conv2 = self.bias_variable([64])
+        h_conv2 = tf.nn.relu(self.conv1d(h_pool2, W_conv2) + b_conv2)
+        
+        ''' Third Pooling Layer '''
+        h_pool3 = self.max_pool(h_conv2, pool_width)
       
         ''' Densely Connected Layer '''
-        W_fc1 = self.weight_variable([int(np.ceil(self.wav/(pool_width))/np.ceil(self.wav/(pool_width*2))) * 32, 1024])         
+        dim = self.wav
+        for pool in range(3):
+            dim = int(np.ceil(dim/pool_width))
+        h_pool3_flat = tf.reshape(h_pool3, [-1, dim * 64])
+        W_fc1 = self.weight_variable([dim * 64, 1024])         
         b_fc1 = self.bias_variable([1024])
-        h_pool2_flat = tf.reshape(h_pool2, [-1, int(np.ceil(self.wav/(pool_width))/np.ceil(self.wav/(pool_width*2))) * 32])
-        h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+        h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
         
         ''' Dropout (to reduce overfitting) '''
         keep_prob = tf.placeholder(tf.float32)
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
         
         ''' Readout Layer '''
-        W_fc2 = self.weight_variable([1024, len(self.clsTR[0])])
-        b_fc2 = self.bias_variable([len(self.clsTR[0])])
-
+        W_fc2 = self.weight_variable([1024, n_classes])
+        b_fc2 = self.bias_variable([n_classes])
         y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
         
         ''' Train and Evaluate Model '''
@@ -113,15 +127,14 @@ class Neural_Net():
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         
         self.accuracy = []
-        
         confusion = tf.confusion_matrix(tf.argmax(y_conv,1), tf.argmax(y_,1))
         
         with tf.Session() as sess:
             t = time.time()
             sess.run(tf.global_variables_initializer())
-            for i in range(5000):
+            for i in range(steps):
                 batch = np.random.random(len(self.fluxTR)) > 0.01
-                if i % 10 == 0:
+                if i % 50 == 0:
                     train_accuracy = accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
                     print('Step %d, Training Accuracy %g' % (i, train_accuracy))
                     self.accuracy.append(train_accuracy)
@@ -193,5 +206,5 @@ if __name__ == "__main__":
     
     NN = Neural_Net()
     NN.read_lamost_data(files)
-    NN.convolution()
-    NN.save('DR3_2')
+    NN.convolution(steps=20000)
+    NN.save('DR3_5')

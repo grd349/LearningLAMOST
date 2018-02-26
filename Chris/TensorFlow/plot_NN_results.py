@@ -39,14 +39,17 @@ class NN_Results():
         ax[0][0].set_title("Correctness of Predictions")
         ax[0][0].legend(ncol=2, loc="lower right", frameon=True)
         
-        ax[0][1].plot(np.linspace(0,(len(self.accuracy)-1)*10,len(self.accuracy)), self.accuracy, c='g')
+        ax[0][1].plot(np.linspace(1,(len(self.accuracy)-1)*50,len(self.accuracy)-1), self.accuracy[1:], c='g')
         ax[0][1].set_xlabel("Batch number")
         ax[0][1].set_ylabel("Accuracy")
         ax[0][1].set_title("Accuracy with Training Batch")
+        ax[0][1].annotate('Accuracy = {0:.2f}'.format(self.accuracy[-1]), xy=(0.73, 0.07), xycoords='axes fraction')
         
         sns.barplot(x='Classification', y='Percent_Correct', data=self.bar_df, ax=ax[1][0], color='g')
         ax[1][0].set_ylabel('Percentage / %')
-        ax[1][0].set_title('Percentage of Correct Predictions')        
+        ax[1][0].set_title('Percentage of Correct Predictions') 
+        for tick in ax[1][0].get_xticklabels():
+            tick.set_rotation(90)
         
         sns.heatmap(self.heat_df, cmap="Greens", ax=ax[1][1])
         ax[1][1].set_title("Heat Map of Confusion Matrix")
@@ -59,5 +62,5 @@ class NN_Results():
         plt.show()
         
 if __name__ == "__main__":
-    results = NN_Results('DR3_2')
+    results = NN_Results('DR3_4')
     results.plot_results()
