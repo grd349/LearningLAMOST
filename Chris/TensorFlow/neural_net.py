@@ -133,7 +133,7 @@ class Neural_Net():
             t = time.time()
             sess.run(tf.global_variables_initializer())
             for i in range(steps):
-                batch = np.random.random(len(self.fluxTR)) > 0.01
+                batch = np.random.random(len(self.fluxTR)) < 0.01
                 if i % 50 == 0:
                     train_accuracy = accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
                     print('Step %d, Training Accuracy %g' % (i, train_accuracy))
@@ -206,5 +206,5 @@ if __name__ == "__main__":
     
     NN = Neural_Net()
     NN.read_lamost_data(files)
-    NN.convolution(steps=20000)
-    NN.save('DR3_5')
+    NN.convolution(steps=10000)
+    NN.save('DR3_6')

@@ -62,5 +62,5 @@ class NN_Results():
         plt.show()
         
 if __name__ == "__main__":
-    results = NN_Results('DR3_4')
+    results = NN_Results('DR3_5')
     results.plot_results()
