@@ -71,6 +71,8 @@ class Spectrum():
                 fSel = fSel[check_nan]
                 wSel = wSel[check_nan]
                 
+                lin = np.polyfit(wSel,fSel,1)
+                '''
                 S = np.sum(1/fSel)
                 Sx = np.sum(wSel/fSel)
                 Sy = len(fSel)
@@ -80,9 +82,10 @@ class Spectrum():
                 grad = S*Sxx - Sx**2
                 a = (Sxx*Sy - Sx*Sxy)/grad
                 b = (S*Sxy - Sx*Sy)/grad
-                
+                '''
                 spec_line_area = np.trapz(self.flux[sel],self.wavelength[sel])
-                continuum_area = (b*(self.wavelength[sel][0]+self.wavelength[sel][-1])+2*a) * spec_line_width/2   
+                #continuum_area = (b*(self.wavelength[sel][0]+self.wavelength[sel][-1])+2*a) * spec_line_width/2   
+                continuum_area = (lin[0]*(self.wavelength[sel][0]+self.wavelength[sel][-1])+2*lin[1]) * spec_line_width/2  
                 feats[i] = (continuum_area-spec_line_area)/continuum_area * spec_line_width
                 if feats[i] != feats[i]:
                     feats[i] = 0
@@ -122,5 +125,5 @@ if __name__ == "__main__":
                 df_main = pd.concat([df_main, df])
         except:
             print("Failed for file : ", f)
-    df_main.to_csv('TempCSVs2/output_' + str(index) + '.csv')
+    df_main.to_csv('TempCSVs3/output_' + str(index) + '.csv')
 

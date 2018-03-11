@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import pandas as pd
 import seaborn as sns
 import glob
@@ -10,6 +11,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import Imputer, StandardScaler
 from read_fits import Spectrum
+
+matplotlib.rcParams.update({'font.size':14})
 
 class Temperature_Regressor():
     def __init__(self, direc, bright = False):
@@ -69,7 +72,7 @@ class Temperature_Regressor():
             regr = RandomForestRegressor(n_estimators = hyp['n_estimators'], max_depth = hyp['max_depth'], max_features = self.max_features)   
         else:
             self.max_features = 15
-            regr = RandomForestRegressor(n_estimators=100, max_depth=3000, max_features=self.max_features)     
+            regr = RandomForestRegressor(n_estimators=60, max_depth=5000, max_features=self.max_features)     
         regr = regr.fit(X_train,y_train)        
         self.y_test_pred = regr.predict(X_test)
         self.error = self.y_test_pred - self.y_test
@@ -90,21 +93,21 @@ class Temperature_Regressor():
 
     def plot_results(self, model, regr='Random Forest Regressor'):
         ''' Creates a 2 by 2 grid of subplots presenting the predictions of the RFR '''
-        fig, ax = plt.subplots(2,2)
-        fig.suptitle(regr + '\n' + model,y=1.03,fontsize=18)
+        fig, ax = plt.subplots(2,2, figsize=[13,10])
+        #fig.suptitle(regr + '\n' + model,y=1.03,fontsize=18)
         
         ends = [np.amin(self.y_test), np.amax(self.y_test)]
         ''' Predicted vs. actual temperature '''
-        ax[0][0].scatter(self.y_test, self.y_test_pred)
-        ax[0][0].plot(ends, ends, ls = ':', color = 'red')
-        ax[0][0].set_xlabel('Actual Temperature / K')
-        ax[0][0].set_ylabel('Predicted Temperature / K')
-        ax[0][0].set_title('Predicted vs. Actual Temperature')
-        ax[0][0].annotate('MAD = {0:.2f}'.format(mad_std(self.error)), xy=(0.05, 0.90), xycoords='axes fraction', color='r')
+        ax[0][0].scatter(self.y_test, self.y_test_pred, color = 'blueviolet')
+        ax[0][0].plot(ends, ends, ls = ':', color = 'orangered')
+        ax[0][0].set_xlabel('LAMOST ' + model)
+        ax[0][0].set_ylabel('Model '+ model)
+        ax[0][0].set_title('Model vs. LAMOST ' + model)
+        ax[0][0].annotate('MAD = {0:.2f}'.format(mad_std(self.error)), xy=(0.05, 0.90), xycoords='axes fraction', color='orangered')
         
         ''' Kernel density estimator '''
-        sns.kdeplot(self.error, ax=ax[0][1], shade=True)
-        ax[0][1].set_xlabel('Absolute Error / K')
+        sns.kdeplot(self.error, ax=ax[0][1], shade=True, color = 'blueviolet')
+        ax[0][1].set_xlabel('Absolute Error')
         ax[0][1].set_ylabel('Fraction of Points with Error')
         ax[0][1].set_title('KDE Plot for Absolute Errors')
         
@@ -128,25 +131,29 @@ class Temperature_Regressor():
         outlier = Spectrum('/data2/mrs493/DR1_3/' + self.test_df.get_value(outlier_row,'FILENAME'))      
         
         ''' Outlier spectrum plot '''
-        ax[1][1].plot(outlier.wavelength, outlier.flux)
-        if model == 'teff':
+        ax[1][1].plot(outlier.wavelength, outlier.flux, color='blueviolet')
+        if model == 'Temperature':
             blackbody_true = self.blackbody(self.test_df.get_value(outlier_row,'teff'), outlier.wavelength, np.nansum(outlier.flux))
             blackbody_pred = self.blackbody(self.y_test_pred[outlier_index], outlier.wavelength, np.nansum(outlier.flux))
-            ax[1][1].plot(outlier.wavelength,blackbody_true,'--',c='r',label='True Temp.')
-            ax[1][1].plot(outlier.wavelength,blackbody_pred,'--',c='b',label='Predicted Temp.')
-        ax[1][1].set_xlabel('Wavelength / Angstroms')
+            ax[1][1].plot(outlier.wavelength,blackbody_true,'--',c='deepskyblue',label='True Temp.')
+            ax[1][1].plot(outlier.wavelength,blackbody_pred,'--',c='orangered',label='Predicted Temp.')
+        ax[1][1].set_xlabel('Wavelength [Angstroms]')
         ax[1][1].set_ylabel('Flux')
         ax[1][1].set_title('Spectrum for Greatest Outlier')
         ax[1][1].legend()
                 
         plt.tight_layout()
+        plt.savefig(model)
         plt.show()
         	
 if __name__ == "__main__":
     direc = 'TempCSVs1'
     spec_regr = Temperature_Regressor(direc, bright = True)
     spec_regr.extract_features()
+
     models = ['teff', 'logg', 'feh']
-    for mod in models:
-        spec_regr.predict_temperatures(tune = False, model = mod)
-        spec_regr.plot_results(model = mod)
+    names = ['Temperature', 'Surface Gravity', 'Metallicity']
+    for idx in range(len(models)):
+        spec_regr.predict_temperatures(tune = False, model = models[idx])
+        spec_regr.plot_results(model = names[idx])
+

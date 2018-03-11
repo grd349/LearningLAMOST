@@ -6,11 +6,29 @@ import time
 import numpy as np
 import tensorflow as tf
 
+"""
+CLASS --- TOTAL --- TRAINING
+A --- 275405 --- 1123
+B --- 4939 --- 712
+Carbon --- 1656 --- 706
+DoubleStar --- 3401 --- 1012
+EM --- 183 --- 183
+F --- 1269969 --- 4878
+G --- 2293761 --- 9643
+Galaxy --- 61815 --- 9726
+K --- 1089096 --- 4205
+M --- 319957 --- 1057
+O --- 193 --- 193
+QSO --- 16351 --- 9273
+Star --- 5268415 --- 24412
+Unknown --- 408273 --- 8122
+WD --- 9855 --- 700
+"""
 class Neural_Net():
     def __init__(self):
         pass
     
-    def read_lamost_data(self,sfile,MK = True):
+    def read_lamost_data(self,sfile,MK = False):
         ''' Reads in the flux and classes from LAMOST fits files & converts classes to one-hot vectors '''
         print("Reading in LAMOST data...")
         flux = []
@@ -83,25 +101,33 @@ class Neural_Net():
         y_ = tf.placeholder(tf.float32, [None, n_classes])
         
         ''' First Pooling Layer '''
+        ''' This initial layer of pooling reduces the 3500 flux values in each input spectrum to 234 to speed up computation of first convolution. '''
         h_pool1 = self.max_pool(x_, pool_width)
         
         ''' First Convolutional Layer '''
+        ''' Convolves patches of 50 points with 32 weight filters (each of width 50), increasing the number of features per flux value from 1 to 32. '''
+        ''' The input is zero padded before convolution so that the number of neurons before and after this operation is the same. '''
         W_conv1 = self.weight_variable([50,1,32])
         b_conv1 = self.bias_variable([32])
         h_conv1 = tf.nn.relu(self.conv1d(h_pool1, W_conv1) + b_conv1)
         
         ''' Second Pooling Layer '''
+        ''' Now that each neuron contains 32 values rather than 1, a second layer of pooling is carried out, reducing the number of neurons to 16. '''
         h_pool2 = self.max_pool(h_conv1, pool_width)
         
         ''' Second Convolutional Layer '''
+        ''' Convolves patches of 50 points with 64 weight filters (of size 50x32), increasing the number of features from 32 to 65. '''
         W_conv2 = self.weight_variable([50,32,64])
         b_conv2 = self.bias_variable([64])
         h_conv2 = tf.nn.relu(self.conv1d(h_pool2, W_conv2) + b_conv2)
         
         ''' Third Pooling Layer '''
+        ''' Reduces number of neurons from 16 to 2. '''
         h_pool3 = self.max_pool(h_conv2, pool_width)
       
         ''' Densely Connected Layer '''
+        ''' Flattens the previous layer to a batch of arrays (one for each input spectrum), multiplies by a weight matrix, adds a bias and applies a ReLU. '''
+        ''' The number of neurons in the next layer is 1024 (although these each hold one value rather than 64). The ReLU zeros any negative values. '''
         dim = self.wav
         for pool in range(3):
             dim = int(np.ceil(dim/pool_width))
@@ -111,10 +137,13 @@ class Neural_Net():
         h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
         
         ''' Dropout (to reduce overfitting) '''
+        ''' Temporarily removes several neurons from the previous layer at random, in order to reduce overfitting. '''
         keep_prob = tf.placeholder(tf.float32)
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
         
         ''' Readout Layer '''
+        ''' Produces a layer of neurons equal to the number of classes, containing values corresponding to the probabilities that the input spectrum belongs '''
+        ''' to each class. '''
         W_fc2 = self.weight_variable([1024, n_classes])
         b_fc2 = self.bias_variable([n_classes])
         y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
@@ -141,7 +170,7 @@ class Neural_Net():
                 train_step.run(feed_dict={x: self.fluxTR[batch], y_: self.clsTR[batch], keep_prob: 0.5})         
             self.conf = sess.run(confusion, feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0})
             print('Test Accuracy %g' % accuracy.eval(feed_dict={x: self.fluxTE, y_: self.clsTE, keep_prob: 1.0}))
-            print('Time Taken: ', time.time() - t, 'seconds')
+            print('Time Taken: ', (time.time() - t)/3600, 'hours')
     
     def save(self,folder):
         ''' Saves final results from neural net into csv files '''
@@ -169,7 +198,7 @@ class Neural_Net():
         y = np.abs(np.random.random(2))
         E = np.linspace(y[0],y[1],1000)
         for idx in range(len(E)):
-            E[idx] = E[idx] + np.random.normal(0,np.sqrt(E[idx]/1000))
+            E[idx] = E[idx] + np.ranpoolsdom.normal(0,np.sqrt(E[idx]/1000))
         return E/np.sum(E)
     
     def onehot(self,classes):
@@ -206,5 +235,5 @@ if __name__ == "__main__":
     
     NN = Neural_Net()
     NN.read_lamost_data(files)
-    NN.convolution(steps=10000)
-    NN.save('DR3_6')
+    NN.convolution(steps=100000)
+    NN.save('DR3_10')

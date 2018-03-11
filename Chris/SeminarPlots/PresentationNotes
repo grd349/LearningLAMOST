@@ -1,0 +1,88 @@
+Aims:
+- Create two models: one to estimate the temperature of stars and one to provide classifications for LAMOST spectra
+- From the second model we hope to be able to identify outliers which may belong to interesting astronomical objects
+
+LAMOST Spectral Survey:
+- Large scale astronomical survey collecting spectra for objects in the upper half of the celestial sphere
+- Currently released ~5 million spectra
+- Needed to process spectra by NaNning negative flux values and echelle overlap
+
+Machine Learning:
+- Field derived from artificial intelligence to describe the use of algorithms which can optimise their own parameters without explicit programming
+- Supervised learning: taught using data and labels and must provide rules which map the data onto the labels
+
+Photometric Bands:
+- Needed features rather than flux values to input into algorithm
+- Took -2.5log10 of mean flux in several regions and found the difference between index pairs
+- This gives the shape of the spectrum and therefore a good idea of where the peak is - temperature
+- Ballesteros formula is a current method used to approximate the temperature from B-V feature
+
+Equivalent Widths:
+- It is found by forming a rectangle with a height equal to that of continuum emission, and finding the width such that the area of the rectangle is equal to the area in the spectral line
+- A stars have strong hydrogen lines - hotter stars burn through hydrogen more rapidly, cooler stars are older so have had longer to burn through the fuel
+
+Spectral Smoothing:
+- Convolved spectrum with two box kernels with different widths
+- Took the difference between the flux values - this gives a measure of how spiky a spectrum is i.e. how many spectral lines it has
+
+Random Forest Regressor:
+- Fits a series of decision trees to data and averages over the results to avoid overfitting
+- Decision trees use binary True/False questions to partition the data into smaller subsets and assigning temperature values to these subsets by averaging the given temperatures for each of the spectra in that subset
+
+Results: Temperature:
+- Explain plots
+- Hydrogen lines have high importance due to the fact that a large number of stars contain these lines
+- LAMOST estimates of teff seem inaccurate from spectral outlier plot
+
+Results: Surface Gravity:
+- High dependence on Magnesium based features
+- Larger amount of Mg increases electron pressure which in turn increases gas pressure therefore surface gravity
+
+Results: Metallicity:
+- High dependence on difference feature
+- Spikier spectra means more spectral lines therefore more metal lines -> higher metallicity
+
+Results: The Cannon:
+- Teff and logg both good results compared to The Cannon, metallicity not so good
+
+Classifying Spectra:
+- Now widened training set to include QSOs, galaxies etc.
+- QSO spectra contain broad emission lines
+- Galaxy spectra are a superposition of many stellar spectra 
+
+Neural-Net Deep Learning:
+General:
+- Input (receive information) -> hidden (perform operations) -> output (return predictions)
+- Layers of nodes connected by weights
+- NN learns through backpropagation, altering weights to minimise a loss function
+Tensorflow:
+- Convolutional NN based on the 2-D version used to interpret MNIST handwritten digits
+- Additional pooling layer added to start due to number of input fluxes
+
+Neural-Net Layers:
+- Pooling reduces number of nodes in a layer to speed up computational time; however, information is lost
+- Patches of nodes are convolved with filters containing randomly generated weights
+- Zero padding added to conserve number of nodes in the next layer
+- Mention dense layer (filter = layer size)
+
+Train/Test Set:
+- 92% of spectra are stars
+- Reduced this to 47% in train/test set
+- Will also subcategorise into MK classes
+
+Results: Without MK Classes:
+- Explain what each plot means
+- Accuracy still on the rise
+- Off diagonals << diagonals
+
+Results: With MK Classes:
+- E and W the worst - limited by dataset
+- O and B well classified despite low number in training set
+- G stars often confused with F and K
+- QSOs and Unknowns often mixed up
+
+Conclusions:
+- LAMOST approximations of temperature are inaccurate
+- Lack of EM, WD and DoubleStar spectra which could improve accuracy of neural-net results
+- Final step suggestion: Extract the probability outputs from neural net and highlight spectra with a probability below some threshold value
+

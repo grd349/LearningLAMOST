@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+matplotlib.rcParams.update({'font.size':14})
 
 class NN_Results():
     def __init__(self,folder):
@@ -28,30 +31,28 @@ class NN_Results():
         
     def plot_results(self):
         fig, ax = plt.subplots(2,2,figsize=(13,10))
-        fig.suptitle("Convolutional Neural Net",y=1.02,fontsize=24)
+        #fig.suptitle("Convolutional Neural Net",y=1.02,fontsize=24)
         
-        sns.set_color_codes("pastel")
-        sns.barplot(x='Total', y='Classification', data=self.bar_df, label='Correct', ax=ax[0][0], color='g')
-        sns.set_color_codes("muted")
-        sns.barplot(x='Incorrect', y='Classification', data=self.bar_df, label='Incorrect', ax=ax[0][0], color='g')
+        sns.barplot(x='Total', y='Classification', data=self.bar_df, label='Correct', ax=ax[0][0], color='blueviolet')
+        sns.barplot(x='Incorrect', y='Classification', data=self.bar_df, label='Incorrect', ax=ax[0][0], color='indigo')
         ax[0][0].set_xlabel("Number of Predictions")
         ax[0][0].set_ylabel("Classification")
         ax[0][0].set_title("Correctness of Predictions")
         ax[0][0].legend(ncol=2, loc="lower right", frameon=True)
         
-        ax[0][1].plot(np.linspace(1,(len(self.accuracy)-1)*50,len(self.accuracy)-1), self.accuracy[1:], c='g')
+        ax[0][1].plot(np.linspace(1,(len(self.accuracy)-1)*50,len(self.accuracy)-1), self.accuracy[1:], c='blueviolet')
         ax[0][1].set_xlabel("Batch number")
         ax[0][1].set_ylabel("Accuracy")
         ax[0][1].set_title("Accuracy with Training Batch")
-        ax[0][1].annotate('Accuracy = {0:.2f}'.format(self.accuracy[-1]), xy=(0.73, 0.07), xycoords='axes fraction')
+        ax[0][1].annotate('Accuracy = {0:.2f}'.format(self.accuracy[-1]), xy=(0.63, 0.07), xycoords='axes fraction')
         
-        sns.barplot(x='Classification', y='Percent_Correct', data=self.bar_df, ax=ax[1][0], color='g')
+        sns.barplot(x='Classification', y='Percent_Correct', data=self.bar_df, ax=ax[1][0], color='blueviolet')
         ax[1][0].set_ylabel('Percentage / %')
         ax[1][0].set_title('Percentage of Correct Predictions') 
         for tick in ax[1][0].get_xticklabels():
             tick.set_rotation(90)
         
-        sns.heatmap(self.heat_df, cmap="Greens", ax=ax[1][1])
+        sns.heatmap(self.heat_df, cmap="Purples", ax=ax[1][1])
         ax[1][1].set_title("Heat Map of Confusion Matrix")
         for tick in ax[1][1].get_xticklabels():
             tick.set_rotation(90)
@@ -62,5 +63,5 @@ class NN_Results():
         plt.show()
         
 if __name__ == "__main__":
-    results = NN_Results('DR3_5')
+    results = NN_Results('DR3_10')
     results.plot_results()
