@@ -38,7 +38,7 @@ class NN_Results():
         ax[0][0].set_xlabel("Number of Predictions")
         ax[0][0].set_ylabel("Classification")
         ax[0][0].set_title("Correctness of Predictions")
-        ax[0][0].legend(ncol=2, loc="lower right", frameon=True)
+        ax[0][0].legend(loc="upper right", frameon=True)
         
         ax[0][1].plot(np.linspace(1,(len(self.accuracy)-1)*50,len(self.accuracy)-1), self.accuracy[1:], c='blueviolet')
         ax[0][1].set_xlabel("Batch number")
@@ -63,5 +63,5 @@ class NN_Results():
         plt.show()
         
 if __name__ == "__main__":
-    results = NN_Results('DR3_10')
+    results = NN_Results('DR3_9')
     results.plot_results()
