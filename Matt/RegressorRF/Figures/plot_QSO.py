@@ -36,7 +36,7 @@ spec-55892-GAC_082N27_M1_sp13-249.fits
 spec-57005-M31020N36M1_sp14-206.fits
 spec-55892-F9205_sp03-222.fits
 '''
-files = ['/data2/cpb405/Training/spec-55892-GAC_082N27_M1_sp13-249.fits','/data2/cpb405/Training/spec-57005-M31020N36M1_sp14-206.fits','/data2/cpb405/Training/spec-55892-F9205_sp03-222.fits']
+files = ['/data2/cpb405/Training/spec-56206-EG232011N230528B01_sp07-196.fits','/data2/cpb405/Training/spec-55913-M31_014139N300249_F1_sp03-053.fits']
 '''
 poss:
 spec-55878-B87802_1_sp02-162.fits

@@ -14,10 +14,10 @@
    inkscape:version="0.48.5 r10040"
    width="446.5589"
    height="266.33524"
-   sodipodi:docname="NNDiagramGeneral.png"
-   inkscape:export-filename="/net/xun0/export/home/lnx/cpb405/LearningLAMOST/Chris/SeminarPlots/NeuralNet/ModelNNDiagram.png"
-   inkscape:export-xdpi="200"
-   inkscape:export-ydpi="200">
+   sodipodi:docname="NNDiagramGeneral.svg"
+   inkscape:export-filename="/net/xun0/export/home/lnx/cpb405/LearningLAMOST/Chris/SeminarPlots/NeuralNet/NNDiagramGeneral.png"
+   inkscape:export-xdpi="100"
+   inkscape:export-ydpi="100">
   <metadata
      id="metadata3068">
     <rdf:RDF>
@@ -98,7 +98,7 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
+     inkscape:window-width="959"
      inkscape:window-height="1014"
      id="namedview3064"
      showgrid="false"
@@ -106,12 +106,12 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:zoom="1.420606"
-     inkscape:cx="35.834263"
-     inkscape:cy="118.09679"
-     inkscape:window-x="0"
+     inkscape:zoom="0.710303"
+     inkscape:cx="237.73991"
+     inkscape:cy="-94.280089"
+     inkscape:window-x="960"
      inkscape:window-y="27"
-     inkscape:window-maximized="1"
+     inkscape:window-maximized="0"
      inkscape:current-layer="svg3062" />
   <path
      style="fill:none;stroke:#000000;stroke-width:0.99413818px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart)"
@@ -170,7 +170,7 @@
   <path
      transform="matrix(0.12775918,0,0,0.12775918,-16.279589,-17.358318)"
      sodipodi:type="arc"
-     style="fill:#323232;fill-opacity:0.35294118;stroke:none"
+     style="fill:#7c50ff;fill-opacity:0.27450982000000002;stroke:#7c50ff;stroke-opacity:0.37254903000000000;stroke-width:15.65445238;stroke-miterlimit:4;stroke-dasharray:none"
      id="path3908"
      sodipodi:cx="378.29007"
      sodipodi:cy="386.73352"
@@ -184,13 +184,13 @@
      sodipodi:cy="386.73352"
      sodipodi:cx="378.29007"
      id="path3910"
-     style="fill:#323232;fill-opacity:0.35294118;stroke:none"
+     style="fill:#7c50ff;fill-opacity:0.27450982000000002;stroke:#7c50ff;stroke-opacity:0.37254903000000000;stroke-width:15.65445238;stroke-miterlimit:4;stroke-dasharray:none"
      sodipodi:type="arc"
      transform="matrix(0.12775918,0,0,0.12775918,-16.279589,83.760022)" />
   <path
      transform="matrix(0.12775918,0,0,0.12775918,-16.279589,184.87605)"
      sodipodi:type="arc"
-     style="fill:#323232;fill-opacity:0.35294118;stroke:none"
+     style="fill:#7c50ff;fill-opacity:0.27450982000000002;stroke:#7c50ff;stroke-opacity:0.37254903000000000;stroke-width:15.65445238;stroke-miterlimit:4;stroke-dasharray:none"
      id="path3912"
      sodipodi:cx="378.29007"
      sodipodi:cy="386.73352"
@@ -464,7 +464,7 @@
   <path
      transform="matrix(0.12775918,0,0,0.12775918,366.17843,-17.358318)"
      sodipodi:type="arc"
-     style="fill:#000000;fill-opacity:0.78431373;stroke:none"
+     style="fill:#4600ff;fill-opacity:0.90196078999999996;stroke:#4600ff;stroke-opacity:1;stroke-width:15.65445238;stroke-miterlimit:4;stroke-dasharray:none"
      id="path9323"
      sodipodi:cx="378.29007"
      sodipodi:cy="386.73352"
@@ -478,13 +478,13 @@
      sodipodi:cy="386.73352"
      sodipodi:cx="378.29007"
      id="path9325"
-     style="fill:#000000;fill-opacity:0.78431373;stroke:none"
+     style="fill:#4600ff;fill-opacity:0.90196078999999996;stroke:#4600ff;stroke-opacity:1;stroke-width:15.65445238;stroke-miterlimit:4;stroke-dasharray:none"
      sodipodi:type="arc"
      transform="matrix(0.12775918,0,0,0.12775918,366.17843,83.760022)" />
   <path
      transform="matrix(0.12775918,0,0,0.12775918,366.17843,184.87605)"
      sodipodi:type="arc"
-     style="fill:#000000;fill-opacity:0.78431373;stroke:none"
+     style="fill:#4600ff;fill-opacity:0.90196078999999996;stroke:#4600ff;stroke-opacity:1;stroke-width:15.65445238;stroke-miterlimit:4;stroke-dasharray:none"
      id="path9327"
      sodipodi:cx="378.29007"
      sodipodi:cy="386.73352"
@@ -528,7 +528,7 @@
        id="tspan9339"
        sodipodi:role="line">Y₃</tspan></text>
   <rect
-     style="fill:none;stroke:#323232;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.58823529;stroke-dasharray:none"
+     style="fill:none;stroke:#7c50ff;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.88235295;stroke-dasharray:none"
      id="rect9343"
      width="51.096401"
      height="37.542088"
@@ -552,7 +552,7 @@
      height="37.542088"
      width="51.096401"
      id="rect9355"
-     style="fill:none;stroke:#323232;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.58823529;stroke-dasharray:none" />
+     style="fill:none;stroke:#7c50ff;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.88235295;stroke-dasharray:none" />
   <text
      sodipodi:linespacing="125%"
      id="text9357"
@@ -566,7 +566,7 @@
        id="tspan9359"
        sodipodi:role="line">+b₂</tspan></text>
   <rect
-     style="fill:none;stroke:#323232;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.58823529;stroke-dasharray:none"
+     style="fill:none;stroke:#7c50ff;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.88235295;stroke-dasharray:none"
      id="rect9361"
      width="51.096401"
      height="37.542088"
@@ -586,7 +586,7 @@
        style="font-size:15px">+b₃</tspan></text>
   <path
      style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart)"
-     d="M 382.45806,32.100972 281.91462,32.259491"
+     d="m 382.45806,32.100971 -100.54344,0.15852"
      id="path11791"
      inkscape:connector-type="polyline"
      inkscape:connector-curvature="0"
@@ -615,7 +615,7 @@
      inkscape:connection-end="#rect9361"
      inkscape:connection-end-point="d4" />
   <rect
-     style="fill:#ffffff;fill-opacity:1;stroke:#323232;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.58823529;stroke-dasharray:none;stroke-dashoffset:0"
+     style="fill:#ffffff;fill-opacity:1;stroke:#7c50ff;stroke-width:1;stroke-miterlimit:4;stroke-opacity:0.88235295;stroke-dasharray:none;stroke-dashoffset:0"
      id="rect11785"
      width="43.840279"
      height="257.63654"
