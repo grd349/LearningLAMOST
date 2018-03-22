@@ -20,9 +20,9 @@ K --- 1089096 --- 4205
 M --- 319957 --- 1057
 O --- 193 --- 193
 QSO --- 16351 --- 9273
-Star --- 5268415 --- 24412
+Star --- 5268415 --- 25412
 Unknown --- 408273 --- 8122
-WD --- 9855 --- 700
+WD --- 9855 --- 1700
 """
 class Neural_Net():
     def __init__(self):
@@ -234,6 +234,6 @@ if __name__ == "__main__":
     files = glob.glob(sdir + '*.fits')
     
     NN = Neural_Net()
-    NN.read_lamost_data(files)
-    NN.convolution(steps=100000)
-    NN.save('DR3_10')
+    NN.read_lamost_data(files, MK=False)
+    NN.convolution(steps=200000)
+    NN.save('DR3_12')
