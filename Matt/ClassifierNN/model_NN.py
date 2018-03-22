@@ -13,20 +13,23 @@ import time
 import tensorflow as tf
 
 '''
-K 3772
-M 3082
-G 2750
-F 3271
-Unknown 1798
-GALAXY 196
-A 627
-QSO 70
-C 2
-B 23
-D 5
-W 16
-E 7
-O 2
+CLASS --- DR3 --- TRAINING
+A --- 275405 --- 1123
+B --- 4939 ---  249
+Carbon --- 1656 --- 107
+DoubleStar --- 3401 --- 114
+EM --- 183 --- 100
+F --- 1269969 --- 4878
+G --- 2293761 --- 9643
+Galaxy --- 61815 --- 9726
+K --- 1089096 --- 4205
+M --- 319957 --- 1057
+O --- 193 --- 100
+QSO --- 16351 --- 9273
+Unknown --- 408273 --- 8122
+WD --- 9855 --- 100
+
+T_Star --- 5268415 --- 21676
 '''
 
 class Neural_Network:
@@ -97,6 +100,9 @@ class Neural_Network:
         self.y_train = np.array(self.label[split])
         self.y_test = np.array(self.label[[not s for s in split]])
         
+        self.file_train = np.array(self.files[split])
+        self.file_test = np.array(self.files[[not s for s in split]])
+        
     def batch(self, batch_frac):
         'return a batch of size batch_frac relative to the train set'
         batch = np.random.random(len(self.x_train))<=batch_frac
@@ -104,11 +110,22 @@ class Neural_Network:
         batch_y = self.y_train[batch]
         return batch_x, batch_y
     
-    def save(self, folder, conf, accuracies):
+    def save(self, folder, conf, accuracies, w1, w2):
         'save the results of the model to .csv files'
         np.savetxt('Files/' + folder + '/classes.csv', self.classes, fmt = '%s', delimiter = ',')
         np.savetxt('Files/' + folder + '/confusion.csv', conf, fmt = '%i', delimiter = ',')
         np.savetxt('Files/' + folder + '/accuracies.csv', accuracies, delimiter = ',')
+
+        with open('Files/' + folder + '/w1.csv', 'w') as outfile:
+            outfile.write('#Layer 1\n')
+            for flter in w1:
+                np.savetxt(outfile, flter, fmt = '%s', delimiter = ',')
+                outfile.write('#New filter\n')
+        with open('Files/' + folder + '/w2.csv', 'w') as outfile:
+            outfile.write('#Layer 2\n')
+            for flter in w2:
+                np.savetxt(outfile, flter, fmt = '%s', delimiter = ',')
+                outfile.write('#New filter\n')
 
     def make_spectra(self, samples, line_frac): 
         'produce a test data set of samples spectra, of which line_frac are lines and the remained are blackbodies with a uniform distribution of temperatures'
@@ -144,7 +161,7 @@ class Neural_Network:
         
         print('data generated: ', time.time() - ti)
 
-    def get_LAMOST(self, Ldir, MK = True):
+    def get_LAMOST(self, Ldir, MK = False, SNR = 0):
         'read in the spectra from the LAMOST data'
         
         ti = time.time()
@@ -154,6 +171,7 @@ class Neural_Network:
         
         flux = []
         CLASS = []
+        files = []
         
         self.wavelengths = 3500
         
@@ -163,9 +181,24 @@ class Neural_Network:
                 flx = flx[:self.wavelengths]
                 flx = flx/np.sum(flx)
                 CLS = hdulist[0].header['CLASS']
+                fn = hdulist[0].header['FILENAME']
                 if MK and CLS=='STAR': CLS = hdulist[0].header['SUBCLASS'][0]
-            flux.append(flx)
-            CLASS.append(CLS)
+                try:
+                    U = hdulist[0].header['SNRU']
+                    G = hdulist[0].header['SNRG']
+                    R = hdulist[0].header['SNRR']
+                    I = hdulist[0].header['SNRI']
+                    Z = hdulist[0].header['SNRZ']
+                except:
+                    U = hdulist[0].header['SN_U']
+                    G = hdulist[0].header['SN_G']
+                    R = hdulist[0].header['SN_R']
+                    I = hdulist[0].header['SN_I']
+                    Z = hdulist[0].header['SN_Z']
+            if U>=SNR or G>=SNR or R>=SNR or I>=SNR or Z>=SNR:
+                flux.append(flx)
+                CLASS.append(CLS)
+                files.append(fn)
         
         le = LabelEncoder()
         CLAS = le.fit_transform(CLASS)
@@ -183,6 +216,7 @@ class Neural_Network:
         
         self.spectra = np.array(flux)
         self.label = np.array(CLA)
+        self.files = np.array(files)
         
         print('data read: ', time.time() - ti, '\ndata contents:')
         
@@ -367,37 +401,51 @@ class Neural_Network:
         
         confusion = tf.confusion_matrix(tf.argmax(y,1), tf.argmax(y_,1))
         
+        
         with tf.Session() as sess:
             t = time.time()
+            ti =time.time()
             sess.run(tf.global_variables_initializer())
             for i in range(train_steps):
                 batch_x, batch_y = self.batch(batch_frac)
                 if i%record == 0 and i != 0:
                     train_accuracy = sess.run(accuracy, feed_dict={x: self.x_test, y_: self.y_test, keep_prob: 1.0})
-                    print('step {} training accuracy {}'.format(i, train_accuracy))
+                    print('step {} training accuracy {}, {}s'.format(i, train_accuracy, time.time() - ti))
+                    ti = time.time()
                     accuracies.append([i, train_accuracy])
                 train_step.run(feed_dict={x: batch_x, y_: batch_y, keep_prob: keep})
-            conf, acc = sess.run([confusion, accuracy], feed_dict={x: self.x_test, y_: self.y_test, keep_prob: 1.0})
+            conf, acc, filter1, filter2, probs = sess.run([confusion, accuracy, W_l1, W_l2, y], feed_dict={x: self.x_test, y_: self.y_test, keep_prob: 1.0})
             print('test accuracy {}'.format(acc))
             print(conf)
             accuracies.append([i+1, acc])
-            self.save(folder, conf, accuracies)
+            self.save(folder, conf, accuracies, filter1, filter2)
             print('training time: ', time.time() - t, 's')
         
         plot_results(folder)
 
+        for i in range(len(self.file_test)):
+            if self.y_test[i][3] and np.argmax(probs[i])==1:
+                print(self.file_test[i])
+                fig, ax = plt.subplots()
+                ax.plot(self.x_test[i])
+                plt.show()
+
 if __name__ == "__main__":
+    train = '/data2/cpb405/Training_2/*.fits'
+    test = '/data2/mrs493/DR1_3/*.fits'  
+    
     train = '/data2/cpb405/Training/*.fits'
-    test = '/data2/mrs493/DR1_3/*.fits'
+    
     NN = Neural_Network()
+    MK = False
     #samples = 10000
     tts = 0.5
     bf = 0.01
+    SNR = 0
     #NN.make_spectra(samples, 1./8.)
-    #NN.get_LAMOST_tt(train, test, True)    
-    NN.get_LAMOST(train)
+    #NN.get_LAMOST_tt(train, test, MK)    
+    NN.get_LAMOST(train, MK, SNR)
     NN.train_test_split(tts)
-    ##conv = {'folder':'test', 'train_steps':5000, 'batch_frac':bf, 'keep':0.5, 'record':100, 'pw0':4, 'pw1':10, 'pw2':10, 'width1':50, 'width2':50, 'inter1':32, 'inter2':64, 'inter3':1000}
     conv = {'folder':'test', 'train_steps':10000, 'batch_frac':bf, 'keep':0.5, 'record':100, 'pw0':4, 'pw1':10, 'pw2':10, 'width1':50, 'width2':50, 'inter1':32, 'inter2':64, 'inter3':1000}
     NN.train_conv(**conv)
     

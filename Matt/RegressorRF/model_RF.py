@@ -64,7 +64,8 @@ X_test = test[features]
 
 parameter_grid = [{'n_estimators':[20,40,60,80,100],'max_depth':[1000,2000,3000,4000,5000],'max_features':[6,9,12,15]}]
 
-parameters = ['teff', 'logg', 'feh']
+#parameters = ['teff', 'logg', 'feh']
+parameters = ['logg']
 
 for parameter in parameters:
     t = time.time()
@@ -111,7 +112,7 @@ for parameter in parameters:
     
     sns.kdeplot(error, ax=ax[0][1], shade=True)
     ax[0][1].set_xlabel('Absolute Error')
-    ax[0][1].set_ylabel('Fraction of Points\nwith Error')
+    ax[0][1].set_ylabel('Error Probability')
     ax[0][1].set_title('KDE of Absolute Error')
         #plot the univariant kernel density estimatorplt.axvline(letters[letter][0])
     
@@ -126,7 +127,7 @@ for parameter in parameters:
     
     bp = sns.barplot([i[1] for i in imp][:hyp['max_features']], [i[0]  for i in imp][:hyp['max_features']], ax = ax[1][0])
     ax[1][0].set_xlabel('Features')
-    ax[1][0].set_ylabel('% Importance')
+    ax[1][0].set_ylabel('Importance')
     ax[1][0].set_title('Feature Importance')
     for tick in ax[1][0].get_xticklabels():
         tick.set_rotation(90)
@@ -142,13 +143,13 @@ for parameter in parameters:
     ax[1][1].set_ylabel('Flux')
     ax[1][1].set_title('Spectra of Greatest Outlier')
     if parameter == 'teff':
-        spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index], label = 'Outlier')
+        spectrum.plotFlux(ax = ax[1][1], Tpred = final[test_index], Teff = y_test[test_index], label = 'Outlier', log = False)
         ax[1][1].legend()
-    else: spectrum.plotFlux(ax = ax[1][1], label = 'Outlier')
+    else: spectrum.plotFlux(ax = ax[1][1], label = 'Outlier', log = False)
         
     plt.tight_layout()
-    if bright: plt.savefig('Figures/' + parameter + 'Model' + str(bright) + 'B.pdf')
-    else: plt.savefig('Figures/' + parameter + 'Model.pdf')
+    if bright: plt.savefig('Figures/Fe' + parameter + 'Model' + str(bright) + 'B.pdf')
+    else: plt.savefig('Figures/Fe' + parameter + 'Model.pdf')
     print(time.time() - t)
 
 plt.show()

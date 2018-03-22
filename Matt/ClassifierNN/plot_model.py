@@ -5,6 +5,7 @@ import seaborn as sns
 import sys
 
 def plot_results(folder):
+    
     conf = np.loadtxt('Files/' + folder + '/confusion.csv', delimiter = ',')
     accuracies = np.loadtxt('Files/' + folder + '/accuracies.csv', delimiter = ',')
     
@@ -37,9 +38,34 @@ def plot_results(folder):
         b.set_hatch('//')
     
     ax[0][1].plot([a[0] for a in accuracies], [a[1] for a in accuracies])
+    ax[0][1].set_ylim(ax[0][1].get_ylim())
     ax[0][1].set_title('Accuracy of Model with number of Training Cycles')
     ax[0][1].set_xlabel('Training Cycles')
     ax[0][1].set_ylabel('Model Accuracy')
+
+    correct = 0
+    total = 0
+    
+    right = []
+    
+    for i in range(cls):
+        right.append(conf[i][i])
+        correct += conf[i][i]
+        total += np.sum(conf[i])
+
+    perc = 100*correct/total
+    
+    ax[0][1].annotate('{0:.2f}%'.format(perc), xy = (0.85, 0.05), xycoords = 'axes fraction', color = 'black', size = 15)
+
+    for i in range(cls):
+        ls = [0]*cls
+        ls[i] = 100*right[i]/actual[-1][i]
+        sns.barplot(classes, ls, ax = ax[1][0], color = sns.xkcd_rgb[colours[i]])
+    ax[1][0].set_ylim([0,100])
+    ax[1][0].set_title('Model Accuracy by Classification')
+    ax[1][0].set_xlabel('Classification')
+    ax[1][0].set_ylabel('% Accuracy')
+    '''
 
     model = conf.copy().transpose()
     
@@ -56,13 +82,10 @@ def plot_results(folder):
     
     for b in bar.patches[cls-1:-1:(cls-1)]:
         b.set_hatch('//')
-
-    correct = 0
-    total = 0
     
-    for i in range(cls):
-        correct += conf[i][i]
-        total += np.sum(conf[i])
+    '''
+    
+    
         
     '''
     wrong = total - correct
@@ -87,6 +110,10 @@ def plot_results(folder):
     ax[1][1].set_xlabel('Actual Classification')
     ax[1][1].set_ylabel('Model Classification')
     
+    for tick in ax[1][1].get_xticklabels():
+        tick.set_rotation(90)
+    for tick in ax[1][1].get_yticklabels():
+        tick.set_rotation(0)    
     
     
     plt.savefig('Files/' + folder + '/results_' + folder + '.pdf')

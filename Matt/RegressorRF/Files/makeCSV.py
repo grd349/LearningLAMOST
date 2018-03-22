@@ -12,12 +12,13 @@ from astropy.convolution import convolve, Box1DKernel
 import gc
 import glob
 
-files = glob.glob('/data2/mrs493/DR1_3/*.fits')
+files = glob.glob('/data2/mrs493/DR1_2/*.fits')
 
 fBands = {'cB':[3980,4920], 'cV':[5070,5950],'cR':[5890,7270],'cI':[7310,8810],
           'lHa':[6555, 6575], 'lHb':[4855, 4870], 'lHg':[4320,4370],
           'lHd':[4093,4113], 'lHe':[3960,3980], 'lNa':[5885,5905],
-          'lMg':[5167,5187], 'lK':[3925,3945], 'lG':[4240,4260]}
+          'lMg':[5167,5187], 'lK':[3925,3945], 'lG':[4240,4260],
+          'lFe':[5160,5180]}
 
 keys = ['designation', 'CLASS', 'filename', 'total', 'd1', 'd2', 'd3'] + [feat[0] for feat in fBands.items()]
 
@@ -42,9 +43,9 @@ for idx, fitsName in enumerate(files):
         stitchUpper = sp.searchsorted(wavelength,5590,side='right')
         flux[stitchLower:stitchUpper] = sp.nan
     	
-	'''
-	starts
-	'''
+        '''
+        starts
+        '''
 
         wid = 10
         width = 100
@@ -64,12 +65,12 @@ for idx, fitsName in enumerate(files):
         diff3 = sp.nanmean(abs(smth - smoothFlux))/total
     
         '''
-	end
-    	'''
+        end
+        '''
     
         values = sp.zeros(len(fBands))
         i = 0
-            
+        
         for feat in fBands:
             wBound = fBands[feat]
             wLower = sp.searchsorted(wavelength, wBound[0], side = 'left')
@@ -113,8 +114,9 @@ for idx, fitsName in enumerate(files):
                 values[i] = 0 #need to think of better fix
             
             i += 1
+            
         df = pd.DataFrame(columns=keys)
-        df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], total, diff1, diff2, diff3, values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12]]
+        df.loc[0] = [hdulist[0].header['DESIG'][7:], hdulist[0].header['CLASS'], hdulist[0].header['FILENAME'], total, diff1, diff2, diff3, *values]
         dr1 = pd.concat([dr1, df])
 
     except:
@@ -126,6 +128,6 @@ for idx, fitsName in enumerate(files):
     hdulist.close()
     gc.collect()
 
-dr1.to_csv('spectra3.csv', index = False)
+dr1.to_csv('spectra5.csv', index = False)
 
 errors.to_csv('errors.csv', index = False)
